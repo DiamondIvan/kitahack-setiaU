@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "709834819237",
+    "project_id": "kitahack-setiau",
+    "storage_bucket": "kitahack-setiau.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:709834819237:android:ac6f2664dd096e82baef4c",
+        "android_client_info": {
+          "package_name": "com.example.kitahack_setiau"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBPKNihzDePEDMV2RC-9Agb1Se7-Cn2u2o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
