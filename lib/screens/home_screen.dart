@@ -4,6 +4,7 @@ import 'package:kitahack_setiau/services/auth_service.dart';
 import 'package:kitahack_setiau/screens/meeting_mode_screen.dart';
 import 'package:kitahack_setiau/screens/dashboard_mode_screen.dart';
 import 'package:kitahack_setiau/screens/settings_screen.dart';
+import 'package:kitahack_setiau/screens/memory_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -74,6 +75,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () => setState(() => _currentTabIndex = 0),
                 ),
                 _SidebarItem(
+                  icon: Icons.storage, // Using storage as a placeholder for Memory
+                  label: 'Memory',
+                  selected: _currentTabIndex == 3,
+                  onTap: () => setState(() => _currentTabIndex = 3),
+                ),
+                _SidebarItem(
                   icon: Icons.settings,
                   label: 'Settings',
                   selected: _currentTabIndex == 2,
@@ -129,7 +136,12 @@ class _HomeScreenState extends State<HomeScreen> {
               color: const Color(0xFFF5F6FA),
               child: IndexedStack(
                 index: _currentTabIndex,
-                children: const [MeetingModeScreen(), DashboardModeScreen(), SettingsScreen()],
+                children: const [
+                  MeetingModeScreen(),
+                  DashboardModeScreen(),
+                  SettingsScreen(),
+                  MemoryScreen(),
+                ],
               ),
             ),
           ),
