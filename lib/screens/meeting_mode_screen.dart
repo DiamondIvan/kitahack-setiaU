@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '_stat_box.dart';
 import 'package:kitahack_setiau/models/firestore_models.dart';
 
 class MeetingModeScreen extends StatefulWidget {
@@ -72,73 +73,139 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Recording Status and Button
-            Card(
-              elevation: 4,
-              color: _isRecording ? Colors.red[50] : Colors.blue[50],
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Meeting Recording',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
+        return Container(
+          color: const Color(0xFFF5F6FA),
+          child: Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 900),
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Card(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 4,
+                          color: Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Audio Recording', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF2D2A4A))),
+                                const SizedBox(height: 8),
+                                Text('Start recording to enable live transcription and AI task extraction', style: TextStyle(fontSize: 14, color: Color(0xFF7B7B93))),
+                                const SizedBox(height: 24),
+                                Center(
+                                  child: ElevatedButton(
+                                    onPressed: _isRecording ? _stopRecording : _startRecording,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: _isRecording ? const Color(0xFFE06767) : const Color(0xFF6A5AE0),
+                                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(_isRecording ? Icons.stop : Icons.mic, color: Colors.white),
+                                        const SizedBox(width: 12),
+                                        Text(_isRecording ? 'Stop Meeting' : 'Start Meeting', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _isRecording
-                                  ? 'Recording in progress...'
-                                  : 'Ready to record',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: _isRecording ? Colors.red : Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: _isRecording ? Colors.red : Colors.blue,
-                            shape: BoxShape.circle,
                           ),
-                          child: Icon(
-                            _isRecording ? Icons.stop : Icons.mic,
-                            color: Colors.white,
-                            size: 32,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: _toggleRecording,
-                        icon: Icon(_isRecording ? Icons.stop : Icons.mic),
-                        label: Text(
-                          _isRecording ? 'Stop Recording' : 'Start Recording',
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              _isRecording ? Colors.red : Colors.blue,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                       ),
+                      const SizedBox(width: 24),
+                      Expanded(
+                        child: Card(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 4,
+                          color: Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Column(
+                              children: [
+                                Icon(Icons.assignment, size: 32, color: Color(0xFF6A5AE0)),
+                                const SizedBox(height: 8),
+                                Text('No tasks extracted yet', style: TextStyle(fontSize: 16, color: Color(0xFF7B7B93))),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Card(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 4,
+                          color: Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Live Transcript', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2D2A4A))),
+                                const SizedBox(height: 16),
+                                Center(
+                                  child: Icon(Icons.mic, size: 40, color: Color(0xFF6A5AE0)),
+                                ),
+                                const SizedBox(height: 8),
+                                Text('Real-time speech-to-text with speaker attribution', style: TextStyle(fontSize: 14, color: Color(0xFF7B7B93))),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      Expanded(
+                        child: Card(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 4,
+                          color: Colors.white,
+                          child: Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Meeting Stats', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2D2A4A))),
+                                const SizedBox(height: 16),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    _StatBox(label: 'Tasks Detected', value: '0'),
+                                    _StatBox(label: 'Decisions Made', value: '0'),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    _StatBox(label: 'Actions Queued', value: '0'),
+                                    _StatBox(label: 'AI Interventions', value: '0'),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
                     ),
                   ],
                 ),

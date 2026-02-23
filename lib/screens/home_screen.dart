@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kitahack_setiau/services/auth_service.dart';
 import 'package:kitahack_setiau/screens/meeting_mode_screen.dart';
 import 'package:kitahack_setiau/screens/dashboard_mode_screen.dart';
+import 'package:kitahack_setiau/screens/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,76 +15,128 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final AuthService _authService = AuthService();
   int _currentTabIndex = 0;
+  // 0: Meeting Mode, 1: Dashboard, 2: Settings
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: _authService.authStateChanges,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (!snapshot.hasData) {
-          Future.microtask(() {
-            Navigator.of(context).pushReplacementNamed('/login');
-          });
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('SetiaU'),
-            backgroundColor: Colors.blue[700],
-            foregroundColor: Colors.white,
-            elevation: 0,
-            actions: [
-              PopupMenuButton<int>(
-                itemBuilder: (context) => [
-                  const PopupMenuItem(value: 1, child: Text('Profile')),
-                  const PopupMenuItem(value: 2, child: Text('Settings')),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem(value: 3, child: Text('Sign Out')),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      body: Row(
+        children: [
+          // Sidebar
+          Container(
+            width: 260,
+            height: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF6A5AE0), Color(0xFF8F67E8)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(Icons.account_circle, color: Color(0xFF6A5AE0), size: 32),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text('SetiaU', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                          Text('AI Secretary', style: TextStyle(fontSize: 14, color: Colors.white70)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // Navigation
+                ...[
+                  _SidebarItem(
+                    icon: Icons.dashboard,
+                    label: 'Dashboard',
+                    selected: _currentTabIndex == 1,
+                    onTap: () => setState(() => _currentTabIndex = 1),
+                  ),
+                  _SidebarItem(
+                    icon: Icons.mic,
+                    label: 'Meeting Mode',
+                    selected: _currentTabIndex == 0,
+                    onTap: () => setState(() => _currentTabIndex = 0),
+                  ),
+                  _SidebarItem(
+                    icon: Icons.settings,
+                    label: 'Settings',
+                    selected: _currentTabIndex == 2,
+                    onTap: () => setState(() => _currentTabIndex = 2),
+                  ),
                 ],
-                onSelected: (value) async {
-                  if (value == 3) {
-                    await _authService.signOut();
-                    if (mounted) {
-                      Navigator.of(context).pushReplacementNamed('/login');
-                    }
-                  }
-                },
-              ),
-            ],
+                const Spacer(),
+                // User info
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundColor: Colors.white,
+                        child: const Text('D', style: TextStyle(color: Color(0xFF6A5AE0), fontWeight: FontWeight.bold)),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text('demo@setiau.com', style: TextStyle(fontSize: 14, color: Colors.white)),
+                          Text('Admin', style: TextStyle(fontSize: 12, color: Colors.white70)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: InkWell(
+                    onTap: () async {
+                      await _authService.signOut();
+                      if (mounted) {
+                        Navigator.of(context).pushReplacementNamed('/login');
+                      }
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.logout, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text('Sign Out', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          body: IndexedStack(
-            index: _currentTabIndex,
-            children: const [MeetingModeScreen(), DashboardModeScreen()],
-          ),
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _currentTabIndex,
-            onTap: (index) {
-              setState(() {
-                _currentTabIndex = index;
-              });
-            },
-            items: const [
-              BottomNavigationBarItem(
-                icon: Icon(Icons.mic),
-                label: 'Meeting Mode',
+          // Main content
+          Expanded(
+            child: Container(
+              color: const Color(0xFFF5F6FA),
+              child: IndexedStack(
+                index: _currentTabIndex,
+                children: const [MeetingModeScreen(), DashboardModeScreen(), SettingsScreen()],
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.dashboard),
-                label: 'Dashboard',
-              ),
-            ],
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }

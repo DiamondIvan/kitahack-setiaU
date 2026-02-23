@@ -121,278 +121,133 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Summary Cards
+          // Modern Memory Analytics & Timeline
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Timeline
               Expanded(
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${_pendingActions.length}',
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        const Text(
-                          'Pending Actions',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${_recentTasks.length}',
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.orange,
-                          ),
-                        ),
-                        const Text(
-                          'Open Tasks',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          // Pending Actions Section
-          const Text(
-            'Pending Approvals',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          if (_pendingActions.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32.0),
+                flex: 2,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.check_circle,
-                      size: 48,
-                      color: Colors.green[100],
-                    ),
-                    const SizedBox(height: 12),
-                    const Text('All actions approved!'),
+                    Text('Timeline', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF2D2A4A))),
+                    const SizedBox(height: 16),
+                    ..._recentTasks.map((task) => Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: ListTile(
+                        leading: Icon(Icons.assignment, color: Color(0xFF6A5AE0)),
+                        title: Text(task.title, style: TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(task.description),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text('Due: ${task.dueDate.toString().split(' ')[0]}', style: TextStyle(fontSize: 12, color: Color(0xFF7B7B93))),
+                            Chip(label: Text(task.priority), backgroundColor: task.priority == 'high' ? Color(0xFFE06767) : Color(0xFFFFE066)),
+                          ],
+                        ),
+                      ),
+                    )),
                   ],
                 ),
               ),
-            )
-          else
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _pendingActions.length,
-              itemBuilder: (context, index) {
-                final action = _pendingActions[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  elevation: 2,
-                  child: ExpansionTile(
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _getActionTitle(action),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 4),
-                        Chip(
-                          label: Text(action.actionType),
-                          backgroundColor: _getActionColor(action.actionType),
-                          labelStyle: const TextStyle(
-                            fontSize: 11,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
+              const SizedBox(width: 32),
+              // Quick Insights & Memory Analytics
+              Expanded(
+                flex: 1,
+                child: Column(
+                  children: [
+                    Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 4,
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (action.constraints.isNotEmpty)
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Constraints Detected:',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.red,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  ...action.constraints.map((constraint) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(
-                                        bottom: 8.0,
-                                        left: 12.0,
-                                      ),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Icon(
-                                            Icons.warning,
-                                            size: 16,
-                                            color: Colors.red[700],
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Text(
-                                              constraint,
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }),
-                                  const SizedBox(height: 12),
-                                  const Divider(),
-                                  const SizedBox(height: 12),
-                                ],
-                              ),
-                            const Text(
-                              'Action Details:',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 8),
-                            ...action.payload.entries.map((entry) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0),
-                                child: Row(
-                                  children: [
-                                    SizedBox(
-                                      width: 120,
-                                      child: Text(
-                                        '${entry.key}:',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Text(
-                                        entry.value.toString(),
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            Text('Quick Insights', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2D2A4A))),
+                            const SizedBox(height: 12),
+                            Text('Most Active Period', style: TextStyle(fontSize: 14, color: Color(0xFF7B7B93))),
+                            Text('February 2026', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 12),
+                            Text('Top Contributors', style: TextStyle(fontSize: 14, color: Color(0xFF7B7B93))),
+                            Wrap(
+                              spacing: 8,
                               children: [
-                                ElevatedButton.icon(
-                                  onPressed: () => _approveAction(action.id),
-                                  icon: const Icon(Icons.check),
-                                  label: const Text('Approve'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.green,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                ),
-                                OutlinedButton.icon(
-                                  onPressed: () => _rejectAction(action.id),
-                                  icon: const Icon(Icons.close),
-                                  label: const Text('Reject'),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.red,
-                                  ),
-                                ),
+                                Chip(label: Text('Sarah'), backgroundColor: Color(0xFF6A5AE0)),
+                                Chip(label: Text('Ali'), backgroundColor: Color(0xFF8F67E8)),
+                                Chip(label: Text('Emma'), backgroundColor: Color(0xFF6A5AE0)),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Text('Popular Tags', style: TextStyle(fontSize: 14, color: Color(0xFF7B7B93))),
+                            Wrap(
+                              spacing: 8,
+                              children: [
+                                Chip(label: Text('charity-run'), backgroundColor: Color(0xFFE06767)),
+                                Chip(label: Text('planning'), backgroundColor: Color(0xFF6A5AE0)),
+                                Chip(label: Text('budget'), backgroundColor: Color(0xFF8F67E8)),
+                                Chip(label: Text('marketing'), backgroundColor: Color(0xFFFFE066)),
                               ],
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          const SizedBox(height: 24),
-          // Recent Tasks Section
-          const Text(
-            'Recent Tasks',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _recentTasks.length,
-            itemBuilder: (context, index) {
-              final task = _recentTasks[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ListTile(
-                  leading: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.purple[100],
-                      borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.assignment, color: Colors.purple[700]),
-                  ),
-                  title: Text(task.title),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 4),
-                      Text(
-                        'Assigned to: ${task.assignedTo}',
-                        style: const TextStyle(fontSize: 12),
+                    const SizedBox(height: 24),
+                    Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 4,
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Memory Analytics', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2D2A4A))),
+                            const SizedBox(height: 12),
+                            Text('Storage Used', style: TextStyle(fontSize: 14, color: Color(0xFF7B7B93))),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: LinearProgressIndicator(
+                                    value: 0.48,
+                                    minHeight: 8,
+                                    backgroundColor: Color(0xFFF5F6FA),
+                                    color: Color(0xFF6A5AE0),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text('48 MB', style: TextStyle(fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text('102 MB available', style: TextStyle(fontSize: 12, color: Color(0xFF7B7B93))),
+                            const SizedBox(height: 16),
+                            ElevatedButton.icon(
+                              onPressed: () {},
+                              icon: Icon(Icons.download, color: Colors.white),
+                              label: Text('Export as PDF'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF6A5AE0),
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      Text(
-                        'Due: ${task.dueDate.toString().split(' ')[0]}',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ],
-                  ),
-                  trailing: Chip(
-                    label: Text(task.priority),
-                    backgroundColor: task.priority == 'high'
-                        ? Colors.red[100]
-                        : Colors.yellow[100],
-                  ),
+                    ),
+                  ],
                 ),
-              );
-            },
+              ),
+            ],
           ),
         ],
       ),
