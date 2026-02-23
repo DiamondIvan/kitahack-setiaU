@@ -42,36 +42,27 @@ class _HomeScreenState extends State<HomeScreen> {
             foregroundColor: Colors.white,
             elevation: 0,
             actions: [
-              PopupMenuButton(
+              PopupMenuButton<int>(
                 itemBuilder: (context) => [
-                  PopupMenuItem(
-                    child: const Text('Profile'),
-                    onTap: () {},
-                  ),
-                  PopupMenuItem(
-                    child: const Text('Settings'),
-                    onTap: () {},
-                  ),
+                  const PopupMenuItem(value: 1, child: Text('Profile')),
+                  const PopupMenuItem(value: 2, child: Text('Settings')),
                   const PopupMenuDivider(),
-                  PopupMenuItem(
-                    child: const Text('Sign Out'),
-                    onTap: () async {
-                      await _authService.signOut();
-                      if (mounted) {
-                        Navigator.of(context).pushReplacementNamed('/login');
-                      }
-                    },
-                  ),
+                  const PopupMenuItem(value: 3, child: Text('Sign Out')),
                 ],
+                onSelected: (value) async {
+                  if (value == 3) {
+                    await _authService.signOut();
+                    if (mounted) {
+                      Navigator.of(context).pushReplacementNamed('/login');
+                    }
+                  }
+                },
               ),
             ],
           ),
           body: IndexedStack(
             index: _currentTabIndex,
-            children: const [
-              MeetingModeScreen(),
-              DashboardModeScreen(),
-            ],
+            children: const [MeetingModeScreen(), DashboardModeScreen()],
           ),
           bottomNavigationBar: BottomNavigationBar(
             currentIndex: _currentTabIndex,

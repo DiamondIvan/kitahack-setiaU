@@ -3,13 +3,9 @@ import 'package:kitahack_setiau/models/firestore_models.dart';
 
 class GeminiService {
   late final GenerativeModel _model;
-  final String _apiKey;
 
-  GeminiService({required String apiKey}) : _apiKey = apiKey {
-    _model = GenerativeModel(
-      model: 'gemini-2.0-pro',
-      apiKey: apiKey,
-    );
+  GeminiService({required String apiKey}) {
+    _model = GenerativeModel(model: 'gemini-2.0-pro', apiKey: apiKey);
   }
 
   /// Process meeting transcript and extract tasks
@@ -19,7 +15,8 @@ class GeminiService {
     String meetingId,
     String userId,
   ) async {
-    final prompt = '''
+    final prompt =
+        '''
 You are SetiaU, an agentic secretary for student organizations and NGOs.
 
 Analyze the following meeting transcript and extract all actionable tasks, decisions, and action items.
@@ -73,7 +70,8 @@ IMPORTANT: Return ONLY valid JSON array, no additional text.
     List<String> organizationMembers,
     List<Budget> budgets,
   ) async {
-    final prompt = '''
+    final prompt =
+        '''
 You are SetiaU, an agentic secretary. Analyze the following task and detect any potential conflicts or constraints:
 
 Task:
@@ -118,7 +116,8 @@ Return ONLY valid JSON array, no additional text.
     Task task,
     List<String> constraints,
   ) async {
-    final prompt = '''
+    final prompt =
+        '''
 You are SetiaU, an agentic secretary helping solve organizational challenges.
 
 Task: ${task.title}
@@ -146,7 +145,8 @@ Return ONLY the proposed solution as plain text (no JSON, no markdown).
     Task task,
     String actionType,
   ) async {
-    final prompt = '''
+    final prompt =
+        '''
 You are SetiaU generating structured API payloads for Google Workspace automation.
 
 Task: ${task.title}
@@ -182,12 +182,13 @@ Return ONLY valid JSON object, no additional text.
   ) {
     try {
       // Remove markdown code blocks if present
-      String cleaned = jsonText.replaceAll('```json', '').replaceAll('```', '');
-      
+      // String cleaned = jsonText.replaceAll('```json', '').replaceAll('```', '');
+
       // Parse JSON - expecting array
-      final parsed = Uri.parseQueryComponent(jsonText); // This won't work for JSON
-      
-      // For now, return empty list - in production use json.decode
+      // For now, return empty list - in production use jsonDecode from dart:convert
+      // final parsed = jsonDecode(cleaned);
+      // return List<Task>.from(parsed.map((item) => Task.fromJson(item)));
+
       return [];
     } catch (e) {
       print('Error parsing tasks JSON: $e');
@@ -198,12 +199,12 @@ Return ONLY valid JSON object, no additional text.
   List<String> _parseConstraintsFromJson(String jsonText) {
     try {
       // Remove markdown code blocks if present
-      String cleaned = jsonText.replaceAll('```json', '').replaceAll('```', '');
-      
+      // String cleaned = jsonText.replaceAll('```json', '').replaceAll('```', '');
+
       // For production, parse using dart:convert
       // final parsed = jsonDecode(cleaned);
       // return List<String>.from(parsed);
-      
+
       return [];
     } catch (e) {
       print('Error parsing constraints JSON: $e');
@@ -214,12 +215,12 @@ Return ONLY valid JSON object, no additional text.
   Map<String, dynamic> _parsePayloadFromJson(String jsonText) {
     try {
       // Remove markdown code blocks
-      String cleaned = jsonText.replaceAll('```json', '').replaceAll('```', '');
-      
+      // String cleaned = jsonText.replaceAll('```json', '').replaceAll('```', '');
+
       // For production, parse using dart:convert
       // final parsed = jsonDecode(cleaned);
       // return parsed as Map<String, dynamic>;
-      
+
       return {};
     } catch (e) {
       print('Error parsing payload JSON: $e');

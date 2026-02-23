@@ -10,7 +10,7 @@ class MeetingModeScreen extends StatefulWidget {
 
 class _MeetingModeScreenState extends State<MeetingModeScreen> {
   bool _isRecording = false;
-  String _transcriptText = '';
+  final String _transcriptText = '';
   List<Task> _extractedTasks = [];
 
   void _toggleRecording() {

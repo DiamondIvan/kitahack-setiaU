@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Action;
 import 'package:kitahack_setiau/models/firestore_models.dart';
 
 class DashboardModeScreen extends StatefulWidget {
@@ -54,7 +54,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
       status: 'pending',
       createdAt: DateTime.now(),
       constraints: [
-        'Budget Warning: This purchase would use 85% of water budget (RM500 total allocated)'
+        'Budget Warning: This purchase would use 85% of water budget (RM500 total allocated)',
       ],
     ),
   ];
@@ -192,7 +192,11 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 32.0),
                 child: Column(
                   children: [
-                    Icon(Icons.check_circle, size: 48, color: Colors.green[100]),
+                    Icon(
+                      Icons.check_circle,
+                      size: 48,
+                      color: Colors.green[100],
+                    ),
                     const SizedBox(height: 12),
                     const Text('All actions approved!'),
                   ],
@@ -256,9 +260,11 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Icon(Icons.warning,
-                                              size: 16,
-                                              color: Colors.red[700]),
+                                          Icon(
+                                            Icons.warning,
+                                            size: 16,
+                                            color: Colors.red[700],
+                                          ),
                                           const SizedBox(width: 8),
                                           Expanded(
                                             child: Text(
@@ -271,7 +277,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                                         ],
                                       ),
                                     );
-                                  }).toList(),
+                                  }),
                                   const SizedBox(height: 12),
                                   const Divider(),
                                   const SizedBox(height: 12),
@@ -306,14 +312,13 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                                   ],
                                 ),
                               );
-                            }).toList(),
+                            }),
                             const SizedBox(height: 16),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 ElevatedButton.icon(
-                                  onPressed: () =>
-                                      _approveAction(action.id),
+                                  onPressed: () => _approveAction(action.id),
                                   icon: const Icon(Icons.check),
                                   label: const Text('Approve'),
                                   style: ElevatedButton.styleFrom(
@@ -322,8 +327,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                                   ),
                                 ),
                                 OutlinedButton.icon(
-                                  onPressed: () =>
-                                      _rejectAction(action.id),
+                                  onPressed: () => _rejectAction(action.id),
                                   icon: const Icon(Icons.close),
                                   label: const Text('Reject'),
                                   style: OutlinedButton.styleFrom(
@@ -363,10 +367,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                       color: Colors.purple[100],
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      Icons.assignment,
-                      color: Colors.purple[700],
-                    ),
+                    child: Icon(Icons.assignment, color: Colors.purple[700]),
                   ),
                   title: Text(task.title),
                   subtitle: Column(
