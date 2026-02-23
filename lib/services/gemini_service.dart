@@ -1,11 +1,24 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:kitahack_setiau/models/firestore_models.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class GeminiService {
   late final GenerativeModel _model;
 
   GeminiService({required String apiKey}) {
     _model = GenerativeModel(model: 'gemini-2.0-pro', apiKey: apiKey);
+  }
+
+  /// Factory constructor that loads API key from environment variables
+  factory GeminiService.fromEnv() {
+    final apiKey = dotenv.env['GEMINI_API_KEY'];
+    if (apiKey == null || apiKey.isEmpty) {
+      throw Exception(
+        'GEMINI_API_KEY not found in .env file. '
+        'Please add GEMINI_API_KEY=your_api_key to your .env file',
+      );
+    }
+    return GeminiService(apiKey: apiKey);
   }
 
   /// Process meeting transcript and extract tasks

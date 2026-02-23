@@ -11,6 +11,31 @@ class AuthService {
   // Get current user
   User? get currentUser => _auth.currentUser;
 
+  // Sign in with Email/Password
+  Future<UserCredential?> signInWithEmail(String email, String password) async {
+    try {
+      return await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } on FirebaseAuthException catch (e) {
+      // Auto-create account if user doesn't exist
+      if (e.code == 'user-not-found') {
+        try {
+          return await _auth.createUserWithEmailAndPassword(
+            email: email,
+            password: password,
+          );
+        } catch (e) {
+          print('Error creating account: $e');
+          rethrow;
+        }
+      }
+      print('Error signing in: $e');
+      rethrow;
+    }
+  }
+
   // Sign in with Google
   Future<UserCredential?> signInWithGoogle() async {
     try {
