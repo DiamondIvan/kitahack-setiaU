@@ -24,6 +24,14 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
     });
   }
 
+  void _startRecording() {
+     _toggleRecording();
+  }
+
+  void _stopRecording() {
+     _toggleRecording();
+  }    
+
   void _simulateAIProcessing() {
     // Simulate Gemini extracting tasks from the meeting
     setState(() {
@@ -73,7 +81,7 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        return Container(
+        child: Container(
           color: const Color(0xFFF5F6FA),
           child: Center(
             child: Container(
@@ -182,16 +190,16 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    _StatBox(label: 'Tasks Detected', value: '0'),
-                                    _StatBox(label: 'Decisions Made', value: '0'),
+                                    StatBox(label: 'Tasks Detected', value: '0'),
+                                    StatBox(label: 'Decisions Made', value: '0'),
                                   ],
                                 ),
                                 const SizedBox(height: 12),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    _StatBox(label: 'Actions Queued', value: '0'),
-                                    _StatBox(label: 'AI Interventions', value: '0'),
+                                    StatBox(label: 'Actions Queued', value: '0'),
+                                    StatBox(label: 'AI Interventions', value: '0'),
                                   ],
                                 ),
                               ],
@@ -201,160 +209,153 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 20),
+                  // Transcript Section
+                  if (_transcriptText.isNotEmpty || _isRecording)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Live Transcript',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.grey[50],
+                          ),
+                          child: Text(
+                            _isRecording
+                                ? 'Listening to meeting discussion...'
+                                : _transcriptText,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  // Extracted Tasks Section
+                  if (_extractedTasks.isNotEmpty)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Extracted Tasks (AI-Generated)',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        Card(
+                          color: Colors.amber[50],
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Row(
+                              children: [
+                                Icon(Icons.info, color: Colors.amber[700]),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'AI Pending Approval:  tasks need your review',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.amber[900],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _extractedTasks.length,
+                          itemBuilder: (context, index) {
+                            final task = _extractedTasks[index];
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              child: ListTile(
+                                leading: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue[100],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.assignment,
+                                    color: Colors.blue[700],
+                                  ),
+                                ),
+                                title: Text(task.title),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Assigned: ',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                    Text(
+                                      'Due: ',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                                trailing: Chip(
+                                  label: Text(task.priority),
+                                  backgroundColor: task.priority == 'high'
+                                      ? Colors.red[100]
+                                      : Colors.yellow[100],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Tasks approved and saved!'),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.check),
+                                label: const Text('Approve & Save'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  foregroundColor: Colors.white,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () {
+                                  setState(() {
+                                    _extractedTasks.clear();
+                                  });
+                                },
+                                icon: const Icon(Icons.close),
+                                label: const Text('Discard'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),
           ),
-        );
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            // Transcript Section
-            if (_transcriptText.isNotEmpty || _isRecording)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Live Transcript',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.grey[50],
-                    ),
-                    child: Text(
-                      _isRecording
-                          ? 'Listening to meeting discussion...'
-                          : _transcriptText,
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            // Extracted Tasks Section
-            if (_extractedTasks.isNotEmpty)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Extracted Tasks (AI-Generated)',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Card(
-                    color: Colors.amber[50],
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Row(
-                        children: [
-                          Icon(Icons.info, color: Colors.amber[700]),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'AI Pending Approval: ${_extractedTasks.length} tasks need your review',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.amber[900],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _extractedTasks.length,
-                    itemBuilder: (context, index) {
-                      final task = _extractedTasks[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        child: ListTile(
-                          leading: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: Colors.blue[100],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              Icons.assignment,
-                              color: Colors.blue[700],
-                            ),
-                          ),
-                          title: Text(task.title),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 4),
-                              Text(
-                                'Assigned: ${task.assignedTo}',
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                              Text(
-                                'Due: ${task.dueDate.toString().split(' ')[0]}',
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            ],
-                          ),
-                          trailing: Chip(
-                            label: Text(task.priority),
-                            backgroundColor: task.priority == 'high'
-                                ? Colors.red[100]
-                                : Colors.yellow[100],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Tasks approved and saved!'),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.check),
-                          label: const Text('Approve & Save'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _extractedTasks.clear();
-                            });
-                          },
-                          icon: const Icon(Icons.close),
-                          label: const Text('Discard'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-          ],
         ),
       ),
     );

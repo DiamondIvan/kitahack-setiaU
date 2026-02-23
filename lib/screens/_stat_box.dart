@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-class _StatBox extends StatelessWidget {
+class StatBox extends StatelessWidget {
   final String label;
   final String value;
 
-  const _StatBox({
+  const StatBox({
     required this.label,
     required this.value,
     Key? key,
