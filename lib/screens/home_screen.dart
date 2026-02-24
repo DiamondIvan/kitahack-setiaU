@@ -15,8 +15,15 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final AuthService _authService = AuthService();
+  late final Stream<User?> _authStream;
   int _currentTabIndex = 1;
   // 0: Meeting Mode, 1: Dashboard, 2: Settings, 3: Memory
+
+  @override
+  void initState() {
+    super.initState();
+    _authStream = _authService.authStateChanges;
+  }
 
   void _redirectToLogin() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -28,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
-      stream: _authService.authStateChanges,
+      stream: _authStream,
       builder: (context, snapshot) {
         // 1. Show loading spinner while checking auth status
         if (snapshot.connectionState == ConnectionState.waiting) {
