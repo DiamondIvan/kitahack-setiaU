@@ -158,16 +158,16 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
   Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return Expanded(
       child: Container(
-        height: 160, // Increased height to prevent overflow
-        padding: const EdgeInsets.all(20),
+        height: 160,
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: color.withOpacity(0.15),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
             ),
           ],
         ),
@@ -179,33 +179,51 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                 Flexible(
-                   child: Text(
-                     title,
-                     style: const TextStyle(
-                       fontSize: 14,
-                       color: Color(0xFF7B7B93),
-                       height: 1.2,
-                     ),
-                   ),
-                 ),
-                 Container(
-                   padding: const EdgeInsets.all(12),
-                   decoration: BoxDecoration(
-                     color: color.withOpacity(0.1),
-                     borderRadius: BorderRadius.circular(12),
-                   ),
-                   child: Icon(icon, color: color, size: 24),
-                 ),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF7B7B93),
+                      height: 1.2,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(icon, color: color, size: 24),
+                ),
               ],
             ),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2D2A4A),
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D2A4A),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(
+                    '+5%', // Placeholder for trend
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green[600],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -217,28 +235,32 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
     final isSelected = _selectedTab == index;
     return GestureDetector(
       onTap: () => setState(() => _selectedTab = index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        margin: const EdgeInsets.symmetric(horizontal: 4),
         decoration: BoxDecoration(
           color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(30),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   )
                 ]
-              : null,
+              : [],
         ),
         child: Row(
           children: [
             Text(
               label,
               style: TextStyle(
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? const Color(0xFF2D2A4A) : const Color(0xFF7B7B93),
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? const Color(0xFF2D2A4A) : const Color(0xFF9090A7),
+                fontSize: 14,
               ),
             ),
             if (count != null) ...[
@@ -246,7 +268,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE02E4C),
+                  color: isSelected ? const Color(0xFFE02E4C) : const Color(0xFFE02E4C).withOpacity(0.7),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -267,117 +289,201 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
 
   Widget _buildPendingApprovals() {
     if (_pendingActions.isEmpty) {
-        return const Center(child: Text("No actions pending approval."));
+      return Container(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          children: [
+            Icon(Icons.check_circle_outline, size: 64, color: Colors.grey[300]),
+            const SizedBox(height: 16),
+            const Text(
+              "All clear! No pending approvals.",
+              style: TextStyle(fontSize: 18, color: Color(0xFF7B7B93)),
+            ),
+          ],
+        ),
+      );
     }
     return Column(
       children: _pendingActions.map((action) {
         return Container(
           width: double.infinity,
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(24),
+          margin: const EdgeInsets.only(bottom: 24),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border(
-              left: BorderSide(color: Colors.amber[400]!, width: 6),
-            ),
+            borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                color: Colors.amber.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.amber[50], // Use light amber background
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(Icons.calendar_today, color: Colors.amber[700]), // Proper icon color
-                      ),
-                      const SizedBox(width: 16),
-                      Column(
+                  Container(
+                    width: 8,
+                    color: Colors.amber[400],
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            action.payload['eventName'],
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF2D2A4A),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber[50],
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Icon(Icons.calendar_today, color: Colors.amber[700], size: 24),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        action.payload['eventName'] ?? 'Untitled Event',
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF2D2A4A),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'From Meeting: ${action.meetingId}',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFF7B7B93),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber[50], // Soft amber background
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: Text(
+                                  (action.actionType ?? 'General').toUpperCase(),
+                                  style: TextStyle(
+                                    color: Colors.amber[800],
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8F9FE),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.access_time_filled, size: 16, color: Color(0xFF7B7B93)),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '${action.payload['date']} at ${action.payload['time']}',
+                                      style: const TextStyle(
+                                        color: Color(0xFF2D2A4A),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    const Icon(Icons.location_on, size: 16, color: Color(0xFF7B7B93)),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      action.payload['venue'] ?? 'No venue specified',
+                                      style: const TextStyle(
+                                        color: Color(0xFF2D2A4A),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  action.payload['details'] ?? '',
+                                  style: const TextStyle(
+                                    color: Color(0xFF7B7B93),
+                                    fontSize: 13,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            action.payload['details'],
-                            style: const TextStyle(color: Color(0xFF7B7B93)),
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Generated 2 mins ago',
+                                style: TextStyle(fontSize: 12, color: Colors.grey[400], fontWeight: FontWeight.w500),
+                              ),
+                              Row(
+                                children: [
+                                  OutlinedButton(
+                                    onPressed: () => _rejectAction(action.id),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: const Color(0xFFE02E4C),
+                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      side: const BorderSide(color: Color(0xFFE02E4C), width: 1.5),
+                                    ),
+                                    child: const Text('Reject'),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  ElevatedButton.icon(
+                                    onPressed: () => _approveAction(action.id),
+                                    icon: const Icon(Icons.check, size: 18),
+                                    label: const Text('Approve'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF1CAE4B),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.amber[50],
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.amber[100]!),
-                    ),
-                    child: const Text(
-                      'calendar',
-                      style: TextStyle(
-                        color: Colors.amber, // Ensure text is visible
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Text(
-                '2 minutes ago',
-                style: TextStyle(fontSize: 12, color: Colors.grey[400]),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () => _approveAction(action.id),
-                    icon: const Icon(Icons.check, size: 18),
-                    label: const Text('Approve & Execute'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1CAE4B),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  OutlinedButton.icon(
-                    onPressed: () => _rejectAction(action.id),
-                    icon: const Icon(Icons.close, size: 18),
-                    label: const Text('Reject'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFFE02E4C),
-                      side: const BorderSide(color: Color(0xFFE02E4C)),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
         );
       }).toList(),
@@ -390,94 +496,139 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
         'title': 'Meeting minutes generated for AGM Planning',
         'time': '1 hour ago',
         'icon': Icons.description,
-        'color': Colors.green,
+        'color': const Color(0xFF6A5AE0),
       },
       {
         'title': 'Calendar event created: Monthly Review',
         'time': '3 hours ago',
         'icon': Icons.calendar_today,
-        'color': Colors.green,
+        'color': const Color(0xFF2D9CDB),
       },
       {
         'title': 'Budget sheet updated: Q1 Expenses',
         'time': '5 hours ago',
         'icon': Icons.attach_money,
-        'color': Colors.green,
+        'color': const Color(0xFF27AE60),
       },
+      {
+        'title': 'New member registration form created',
+        'time': 'Yesterday',
+        'icon': Icons.person_add,
+        'color': const Color(0xFFF2994A),
+      }
     ];
 
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Recent Activity',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2D2A4A),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Your organization\'s latest actions and executions',
-            style: TextStyle(color: Color(0xFF7B7B93)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Recent Activity',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2D2A4A),
+                ),
+              ),
+              TextButton(
+                onPressed: () {},
+                child: const Text('View All'),
+              ),
+            ],
           ),
           const SizedBox(height: 24),
-          ...activities.map((activity) => Container(
-                margin: const EdgeInsets.only(bottom: 24),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: activities.length,
+            itemBuilder: (context, index) {
+              final activity = activities[index];
+              final isLast = index == activities.length - 1;
+              
+              return IntrinsicHeight(
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: (activity['color'] as Color).withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        activity['icon'] as IconData,
-                        color: activity['color'] as Color,
-                        size: 20,
-                      ),
+                    Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: (activity['color'] as Color).withOpacity(0.5), width: 2),
+                            boxShadow: [
+                               BoxShadow(
+                                color: (activity['color'] as Color).withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            activity['icon'] as IconData,
+                            color: activity['color'] as Color,
+                            size: 16,
+                          ),
+                        ),
+                        if (!isLast)
+                          Expanded(
+                            child: Container(
+                              width: 2,
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              color: Colors.grey[200],
+                            ),
+                          ),
+                      ],
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 24),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            activity['title'] as String,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF2D2A4A),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 24.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              activity['title'] as String,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                                color: Color(0xFF2D2A4A),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            activity['time'] as String,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF7B7B93),
+                            const SizedBox(height: 4),
+                            Text(
+                              activity['time'] as String,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF7B7B93),
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
-              )),
+              );
+            },
+          ),
         ],
       ),
     );

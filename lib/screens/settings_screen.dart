@@ -122,19 +122,33 @@ class _SettingsTab extends StatelessWidget {
     required this.icon,
     required this.isSelected,
     required this.onTap,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          color: isSelected ? const Color(0xFF6A5AE0) : Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF6A5AE0) : Colors.grey.shade300,
+            width: 1.5,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF6A5AE0).withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  )
+                ]
+              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -142,14 +156,14 @@ class _SettingsTab extends StatelessWidget {
             Icon(
               icon,
               size: 20,
-              color: isSelected ? const Color(0xFF1A1D1E) : Colors.grey[600],
+              color: isSelected ? Colors.white : Colors.grey[600],
             ),
             const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? const Color(0xFF1A1D1E) : Colors.grey[600],
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? Colors.white : Colors.grey[600],
               ),
             ),
           ],
@@ -207,13 +221,15 @@ class _ProfileSection extends StatelessWidget {
           alignment: Alignment.centerRight,
           child: ElevatedButton.icon(
             onPressed: () {},
-            icon: const Icon(Icons.save_outlined, size: 18),
-            label: const Text('Save Changes'),
+            icon: const Icon(Icons.check, size: 20),
+            label: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6A5AE0),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+              elevation: 4,
+              shadowColor: const Color(0xFF6A5AE0).withOpacity(0.4),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
             ),
           ),
         ),
@@ -284,13 +300,15 @@ class _NotificationsSection extends StatelessWidget {
           alignment: Alignment.centerRight,
           child: ElevatedButton.icon(
             onPressed: () {},
-            icon: const Icon(Icons.save_outlined, size: 18),
-            label: const Text('Save Changes'),
+            icon: const Icon(Icons.check, size: 20),
+            label: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6A5AE0),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
+              elevation: 4,
+              shadowColor: const Color(0xFF6A5AE0).withOpacity(0.4),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
             ),
           ),
         ),
@@ -689,27 +707,17 @@ class _SwitchRowState extends State<_SwitchRow> {
           Switch(
             value: _value,
             onChanged: (val) => setState(() => _value = val),
-            activeColor: const Color(0xFF1A1D1E), // Dark toggle when active (screenshot shows black/dark grey)
-            activeTrackColor: const Color(0xFF1A1D1E),
-            inactiveThumbColor: Colors.white,
-            inactiveTrackColor: Colors.grey[300],
-             trackOutlineColor: MaterialStateProperty.resolveWith(
+            activeColor: const Color(0xFF6A5AE0),
+            inactiveThumbColor: Colors.grey[400],
+            inactiveTrackColor: Colors.grey[200],
+            trackOutlineColor: MaterialStateProperty.resolveWith(
               (final Set<MaterialState> states) {
                 if (states.contains(MaterialState.selected)) {
-                  return const Color(0xFF1A1D1E);
+                   return null; 
                 }
                 return Colors.grey[300];
               },
             ),
-            thumbIcon: MaterialStateProperty.resolveWith<Icon?>(
-               (Set<MaterialState> states) {
-                 if (states.contains(MaterialState.selected)) {
-                    // Screenshot shows a simple circle, default is fine or can customize
-                    return const Icon(Icons.circle, size: 0, color: Colors.transparent); // Hide default flutter check/x
-                 }
-                 return null;
-               },
-             ),
           ),
         ],
       ),

@@ -109,21 +109,35 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 24),
-                  child: InkWell(
-                    onTap: () async {
-                      await _authService.signOut();
-                      if (mounted) {
-                        Navigator.of(context).pushReplacementNamed('/login');
-                      }
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.logout, color: Colors.white),
-                        SizedBox(width: 8),
-                        Text('Sign Out', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-                      ],
+                  padding: const EdgeInsets.only(bottom: 24, left: 16, right: 16),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () async {
+                          await _authService.signOut();
+                          if (mounted) {
+                            Navigator.of(context).pushReplacementNamed('/login');
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.logout, color: Colors.white, size: 20),
+                              SizedBox(width: 8),
+                              Text('Sign Out', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -163,32 +177,64 @@ class _SidebarItem extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        decoration: BoxDecoration(
-          color: selected ? Colors.white.withOpacity(0.15) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.white),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-              ),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+            decoration: BoxDecoration(
+              color: selected ? Colors.white.withOpacity(0.15) : Colors.transparent,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: selected
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      )
+                    ]
+                  : [],
             ),
-          ],
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  color: selected ? Colors.white : Colors.white.withOpacity(0.7),
+                  size: 24,
+                ),
+                const SizedBox(width: 16),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: selected ? Colors.white : Colors.white.withOpacity(0.7),
+                    fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                    fontSize: 15,
+                  ),
+                ),
+                if (selected)
+                  const Spacer(),
+                if (selected)
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
