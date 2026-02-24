@@ -19,10 +19,27 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'SetiaU - The Agentic Secretary',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
-        fontFamily: 'Roboto',
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6A5AE0),
+          brightness: Brightness.light,
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF8F9FE), // Slightly off-white background
+        fontFamily: 'Roboto', // Or use a Google Font if available
+        appBarTheme: const AppBarTheme(
+          centerTitle: true,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          foregroundColor: Color(0xFF2D2A4A),
+        ),
+        // cardTheme: const CardTheme(
+        //   elevation: 2,
+        //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
+        //   color: Colors.white,
+        //   surfaceTintColor: Colors.white,
+        // ),
       ),
       initialRoute: '/login',
       routes: {
