@@ -1,6 +1,7 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:kitahack_setiau/models/firestore_models.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/foundation.dart' show debugPrint;
 
 class GeminiService {
   late final GenerativeModel _model;
@@ -71,7 +72,7 @@ IMPORTANT: Return ONLY valid JSON array, no additional text.
       final tasks = _parseTasksFromJson(responseText, meetingId, userId);
       return tasks;
     } catch (e) {
-      print('Error extracting tasks: $e');
+      debugPrint('Error extracting tasks: $e');
       return [];
     }
   }
@@ -119,7 +120,7 @@ Return ONLY valid JSON array, no additional text.
       // Parse constraint messages
       return _parseConstraintsFromJson(responseText);
     } catch (e) {
-      print('Error detecting constraints: $e');
+      debugPrint('Error detecting constraints: $e');
       return [];
     }
   }
@@ -147,7 +148,7 @@ Return ONLY the proposed solution as plain text (no JSON, no markdown).
       final response = await _model.generateContent(content);
       return response.text ?? 'Unable to generate alternative solution';
     } catch (e) {
-      print('Error proposing alternative: $e');
+      debugPrint('Error proposing alternative: $e');
       return 'Unable to generate alternative solution';
     }
   }
@@ -182,7 +183,7 @@ Return ONLY valid JSON object, no additional text.
 
       return _parsePayloadFromJson(responseText);
     } catch (e) {
-      print('Error generating action payload: $e');
+      debugPrint('Error generating action payload: $e');
       return {};
     }
   }
@@ -204,7 +205,7 @@ Return ONLY valid JSON object, no additional text.
 
       return [];
     } catch (e) {
-      print('Error parsing tasks JSON: $e');
+      debugPrint('Error parsing tasks JSON: $e');
       return [];
     }
   }
@@ -220,7 +221,7 @@ Return ONLY valid JSON object, no additional text.
 
       return [];
     } catch (e) {
-      print('Error parsing constraints JSON: $e');
+      debugPrint('Error parsing constraints JSON: $e');
       return [];
     }
   }
@@ -236,7 +237,7 @@ Return ONLY valid JSON object, no additional text.
 
       return {};
     } catch (e) {
-      print('Error parsing payload JSON: $e');
+      debugPrint('Error parsing payload JSON: $e');
       return {};
     }
   }
