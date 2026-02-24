@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kitahack_setiau/models/firestore_models.dart';
+import 'package:kitahack_setiau/services/firestore_service.dart';
+import 'package:kitahack_setiau/services/gemini_service.dart';
+import 'package:speech_to_text/speech_to_text.dart';
+import 'package:uuid/uuid.dart';
 
 class MeetingModeScreen extends StatefulWidget {
   const MeetingModeScreen({super.key});
@@ -10,13 +15,198 @@ class MeetingModeScreen extends StatefulWidget {
 
 class _MeetingModeScreenState extends State<MeetingModeScreen> {
   bool _isRecording = false;
-  // ignore: unused_field
+  bool _isProcessing = false;
+  String _processingStage = '';
+  final SpeechToText _speechToText = SpeechToText();
+  bool _speechReady = false;
+  String _transcript = '';
   final List<Task> _extractedTasks = [];
+  final FirestoreService _firestoreService = FirestoreService();
 
-  void _toggleRecording() {
+  String? _activeMeetingId;
+  DateTime? _meetingStartTime;
+
+  @override
+  void dispose() {
+    _speechToText.stop();
+    super.dispose();
+  }
+
+  Future<void> _toggleRecording() async {
+    if (_isProcessing) return;
+
+    if (_isRecording) {
+      await _speechToText.stop();
+      setState(() {
+        _isRecording = false;
+        _isProcessing = true;
+        _processingStage = 'Analyzing…';
+      });
+
+      try {
+        await _finalizeMeeting();
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isProcessing = false;
+            _processingStage = '';
+          });
+        }
+      }
+
+      return;
+    }
+
+    final ready = await _ensureSpeechReady();
+    if (!ready) return;
+
+    final meetingId = const Uuid().v4();
+    final start = DateTime.now();
+
     setState(() {
-      _isRecording = !_isRecording;
+      _activeMeetingId = meetingId;
+      _meetingStartTime = start;
+      _transcript = '';
+      _extractedTasks.clear();
+      _isRecording = true;
     });
+
+    await _speechToText.listen(
+      onResult: (result) {
+        if (!mounted) return;
+        setState(() {
+          _transcript = result.recognizedWords;
+        });
+      },
+      listenOptions: SpeechListenOptions(
+        listenMode: ListenMode.dictation,
+        partialResults: true,
+        cancelOnError: true,
+      ),
+    );
+  }
+
+  Future<bool> _ensureSpeechReady() async {
+    if (_speechReady) return true;
+    final ready = await _speechToText.initialize(
+      onStatus: (status) {
+        if (!mounted) return;
+        if (status == 'notListening' && _isRecording) {
+          setState(() => _isRecording = false);
+        }
+      },
+      onError: (error) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Speech error: ${error.errorMsg}')),
+        );
+      },
+    );
+
+    if (!mounted) return false;
+
+    if (!ready) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Speech recognition is unavailable or permission was denied.',
+          ),
+        ),
+      );
+      return false;
+    }
+
+    setState(() => _speechReady = true);
+    return true;
+  }
+
+  Future<void> _finalizeMeeting() async {
+    final meetingId = _activeMeetingId;
+    if (meetingId == null) return;
+
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('You are not signed in.')));
+      return;
+    }
+
+    final transcript = _transcript.trim();
+    if (transcript.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No transcript captured.')));
+      return;
+    }
+
+    final transcriptForAi = transcript.length > 12000
+        ? transcript.substring(transcript.length - 12000)
+        : transcript;
+
+    List<Task> tasks = const [];
+    try {
+      final gemini = GeminiService.fromEnv();
+      tasks = await gemini.extractTasksFromTranscript(
+        transcriptForAi,
+        meetingId,
+        userId,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gemini error: $e')));
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _extractedTasks
+        ..clear()
+        ..addAll(tasks);
+    });
+
+    final now = DateTime.now();
+    final start = _meetingStartTime ?? now;
+
+    final meeting = Meeting(
+      id: meetingId,
+      organizationId: 'demo_org',
+      title:
+          'Meeting ${start.toIso8601String().replaceFirst('T', ' ').substring(0, 16)}',
+      startTime: start,
+      endTime: now,
+      attendees: [userId],
+      transcriptUrl: null,
+      status: 'completed',
+      createdAt: now,
+      metadata: {'transcriptText': transcript, 'taskCount': tasks.length},
+    );
+
+    try {
+      if (!mounted) return;
+      setState(() {
+        _processingStage = 'Saving…';
+      });
+
+      await _firestoreService.createMeetingAndTasks(meeting, tasks);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Saved transcript and ${tasks.length} task(s) to Firestore.',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Firestore save error: $e')));
+    }
   }
 
   @override
@@ -118,13 +308,17 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
               height: 56,
               width: 220,
               child: ElevatedButton.icon(
-                onPressed: _toggleRecording,
+                onPressed: (_isProcessing) ? null : _toggleRecording,
                 icon: Icon(
                   _isRecording ? Icons.stop : Icons.mic,
                   color: Colors.white,
                 ),
                 label: Text(
-                  _isRecording ? 'Stop Meeting' : 'Start Meeting',
+                  _isProcessing
+                      ? (_processingStage.isEmpty
+                            ? 'Processing…'
+                            : _processingStage)
+                      : (_isRecording ? 'Stop Meeting' : 'Start Meeting'),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -181,12 +375,25 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
             'Real-time speech-to-text with speaker attribution',
             style: TextStyle(color: Color(0xFF7B7B93)),
           ),
+          const SizedBox(height: 16),
           Expanded(
-            child: Center(
-              child: Icon(
-                Icons.mic_none_outlined,
-                size: 64,
-                color: Colors.grey[300],
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8F9FE),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.withAlpha(26)),
+              ),
+              child: SingleChildScrollView(
+                child: Text(
+                  _transcript.isEmpty
+                      ? (_isRecording
+                            ? 'Listening... start speaking.'
+                            : 'Start a meeting to generate a transcript.')
+                      : _transcript,
+                  style: TextStyle(color: Colors.grey[700], height: 1.4),
+                ),
               ),
             ),
           ),
@@ -236,24 +443,72 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
             'AI-detected tasks, decisions, and actions',
             style: TextStyle(color: Color(0xFF7B7B93), fontSize: 13),
           ),
+          const SizedBox(height: 16),
           Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.description_outlined,
-                    size: 48,
-                    color: Colors.grey[300],
+            child: _extractedTasks.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.description_outlined,
+                          size: 48,
+                          color: Colors.grey[300],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _isProcessing
+                              ? (_processingStage.isEmpty
+                                    ? 'Extracting tasks…'
+                                    : _processingStage)
+                              : 'No tasks extracted yet',
+                          style: TextStyle(color: Colors.grey[400]),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                    itemCount: _extractedTasks.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final task = _extractedTasks[index];
+                      final due = task.dueDate
+                          .toIso8601String()
+                          .split('T')
+                          .first;
+                      return Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8F9FE),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFF6A5AE0).withAlpha(38),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              task.title,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF2D2A4A),
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '${task.assignedTo} • due $due • ${task.priority}',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No tasks extracted yet',
-                    style: TextStyle(color: Colors.grey[400]),
-                  ),
-                ],
-              ),
-            ),
           ),
         ],
       ),
@@ -287,7 +542,7 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildStatRow('Tasks Detected', '0'),
+          _buildStatRow('Tasks Detected', '${_extractedTasks.length}'),
           const SizedBox(height: 16),
           _buildStatRow('Decisions Made', '0'),
           const SizedBox(height: 16),
