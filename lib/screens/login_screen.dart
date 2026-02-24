@@ -14,6 +14,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _isPasswordVisible = false;
+  bool _isLogin = true;
 
   @override
   void dispose() {
@@ -22,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _signInWithEmail() async {
+  void _handleAuthAction() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter email and password')),
@@ -35,10 +36,19 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final result = await _authService.signInWithEmail(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
+      final Future<dynamic> authFuture =
+          _isLogin
+              ? _authService.signInWithEmail(
+                _emailController.text.trim(),
+                _passwordController.text,
+              )
+              : _authService.signUpWithEmail(
+                _emailController.text.trim(),
+                _passwordController.text,
+              );
+
+      final result = await authFuture;
+
       if (result != null && mounted) {
         Navigator.of(context).pushReplacementNamed('/home');
       }
@@ -153,9 +163,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
-                      'Welcome Back',
-                      style: TextStyle(
+                    Text(
+                      _isLogin ? 'Welcome Back' : 'Create Account',
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF2D2A4A),
@@ -163,7 +173,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Please sign in to continue',
+                      _isLogin
+                          ? 'Please sign in to continue'
+                          : 'Please fill in the details below',
                       style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                     ),
                     const SizedBox(height: 32),
@@ -240,22 +252,23 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Forgot Password
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {},
-                        style: TextButton.styleFrom(
-                          foregroundColor: const Color(0xFF6A5AE0),
+                    // Forgot Password (Login Only)
+                    if (_isLogin)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {},
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFF6A5AE0),
+                          ),
+                          child: const Text('Forgot Password?'),
                         ),
-                        child: const Text('Forgot Password?'),
                       ),
-                    ),
                     const SizedBox(height: 24),
 
-                    // Login Button
+                    // Login / Sign Up Button
                     ElevatedButton(
-                      onPressed: _isLoading ? null : _signInWithEmail,
+                      onPressed: _isLoading ? null : _handleAuthAction,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF6A5AE0),
                         foregroundColor: Colors.white,
@@ -266,13 +279,47 @@ class _LoginScreenState extends State<LoginScreen> {
                         elevation: 0,
                       ),
                       child: Text(
-                        _isLoading ? 'Signing in...' : 'Sign In',
+                        _isLoading
+                            ? (_isLogin ? 'Signing in...' : 'Signing up...')
+                            : (_isLogin ? 'Sign In' : 'Sign Up'),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
+                    const SizedBox(height: 24),
+
+                    // Toggle Login/SignUp
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _isLogin
+                              ? "Don't have an account? "
+                              : "Already have an account? ",
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _isLogin = !_isLogin;
+                            });
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFF6A5AE0),
+                            padding: EdgeInsets.zero,
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            _isLogin ? 'Sign Up' : 'Sign In',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+
                     const SizedBox(height: 24),
 
                     // Divider

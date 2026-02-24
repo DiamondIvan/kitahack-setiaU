@@ -22,20 +22,21 @@ class AuthService {
         email: email,
         password: password,
       );
-    } on FirebaseAuthException catch (e) {
-      // Auto-create account if user doesn't exist
-      if (e.code == 'user-not-found') {
-        try {
-          return await _auth.createUserWithEmailAndPassword(
-            email: email,
-            password: password,
-          );
-        } catch (e) {
-          debugPrint('Error creating account: $e');
-          rethrow;
-        }
-      }
+    } catch (e) {
       debugPrint('Error signing in: $e');
+      rethrow;
+    }
+  }
+
+  // Sign up with Email/Password
+  Future<UserCredential?> signUpWithEmail(String email, String password) async {
+    try {
+      return await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    } catch (e) {
+      debugPrint('Error signing up: $e');
       rethrow;
     }
   }
