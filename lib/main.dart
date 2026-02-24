@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
         //   surfaceTintColor: Colors.white,
         // ),
       ),
-      initialRoute: '/login',
+      initialRoute: '/home',
       routes: {
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomeScreen(),

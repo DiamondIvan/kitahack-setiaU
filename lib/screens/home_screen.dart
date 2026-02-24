@@ -38,12 +38,15 @@ return StreamBuilder<User?>(
         }
 
         // 2. Redirect to login if they are not authenticated
+        // TEMPORARY: Allow access even without auth for demo/testing
+        /*
         if (!snapshot.hasData) {
           _redirectToLogin();
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
+        */
 
         // 3. User is logged in! Show the new MVP Sidebar layout
         return Scaffold(
@@ -61,34 +64,32 @@ return StreamBuilder<User?>(
                     end: Alignment.bottomRight,
                   ),
                 ),
-              ),
-            ),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(Icons.account_circle, color: Color(0xFF6A5AE0), size: 32),
-                      ),
-                      const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text('SetiaU', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                          Text('AI Secretary', style: TextStyle(fontSize: 14, color: Colors.white70)),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Icon(Icons.account_circle, color: Color(0xFF6A5AE0), size: 32),
+                          ),
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text('SetiaU', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                              Text('AI Secretary', style: TextStyle(fontSize: 14, color: Colors.white70)),
+                            ],
+                          ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
+                    ),
                 // Navigation
                 _SidebarItem(
                   icon: Icons.dashboard,
@@ -189,6 +190,8 @@ return StreamBuilder<User?>(
           ),
         ],
       ),
+    );
+      },
     );
   }
 }
