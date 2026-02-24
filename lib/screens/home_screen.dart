@@ -15,7 +15,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final AuthService _authService = AuthService();
-  int _currentTabIndex = 0;
+  int _currentTabIndex = 1;
   // 0: Meeting Mode, 1: Dashboard, 2: Settings
 
   @override
