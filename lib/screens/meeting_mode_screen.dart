@@ -19,7 +19,17 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
   String _processingStage = '';
   final SpeechToText _speechToText = SpeechToText();
   bool _speechReady = false;
-  String _transcript = '';
+
+  // Accumulated text from all completed recognition segments
+  String _transcriptBuffer = '';
+  // Current in-progress partial/final result from the active listen session
+  String _currentSegment = '';
+
+  String get _transcript => _transcriptBuffer.isEmpty
+      ? _currentSegment
+      : _transcriptBuffer +
+            (_currentSegment.isEmpty ? '' : ' $_currentSegment');
+
   final List<Task> _extractedTasks = [];
   final FirestoreService _firestoreService = FirestoreService();
 
@@ -36,7 +46,14 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
     if (_isProcessing) return;
 
     if (_isRecording) {
+      // User explicitly stopped — commit any pending segment first
       await _speechToText.stop();
+      if (_currentSegment.isNotEmpty) {
+        _transcriptBuffer = _transcriptBuffer.isEmpty
+            ? _currentSegment
+            : '$_transcriptBuffer $_currentSegment';
+        _currentSegment = '';
+      }
       setState(() {
         _isRecording = false;
         _isProcessing = true;
@@ -66,22 +83,43 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
     setState(() {
       _activeMeetingId = meetingId;
       _meetingStartTime = start;
-      _transcript = '';
+      _transcriptBuffer = '';
+      _currentSegment = '';
       _extractedTasks.clear();
       _isRecording = true;
     });
 
+    await _startListening();
+  }
+
+  /// Starts (or restarts) the speech-to-text listener for a single Android
+  /// recognition session.  Called on first start and automatically on each
+  /// Android timeout while [_isRecording] is still true.
+  Future<void> _startListening() async {
+    if (!mounted || !_isRecording) return;
     await _speechToText.listen(
       onResult: (result) {
         if (!mounted) return;
         setState(() {
-          _transcript = result.recognizedWords;
+          _currentSegment = result.recognizedWords;
+          // When Android finalises a segment, commit it to the buffer so it
+          // won't be lost when the listener restarts.
+          if (result.finalResult && _currentSegment.isNotEmpty) {
+            _transcriptBuffer = _transcriptBuffer.isEmpty
+                ? _currentSegment
+                : '$_transcriptBuffer $_currentSegment';
+            _currentSegment = '';
+          }
         });
       },
+      // Give Android up to 2 minutes per recognition session before we
+      // auto-restart. The OS may still cut it shorter on some devices.
+      listenFor: const Duration(minutes: 2),
+      pauseFor: const Duration(seconds: 5),
       listenOptions: SpeechListenOptions(
         listenMode: ListenMode.dictation,
         partialResults: true,
-        cancelOnError: true,
+        cancelOnError: false, // don't abort on transient errors
       ),
     );
   }
@@ -91,15 +129,24 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
     final ready = await _speechToText.initialize(
       onStatus: (status) {
         if (!mounted) return;
-        if (status == 'notListening' && _isRecording) {
-          setState(() => _isRecording = false);
+        // Android stops the recogniser automatically after its internal
+        // timeout.  While the user still wants to record, restart the
+        // listener immediately so they get a seamless experience.
+        if (status == 'notListening' && _isRecording && !_isProcessing) {
+          _startListening();
         }
       },
       onError: (error) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Speech error: ${error.errorMsg}')),
-        );
+        // Restart on recoverable errors (e.g. network blip); only show a
+        // SnackBar for errors that are not simply a "no speech detected" type.
+        if (_isRecording && !_isProcessing) {
+          _startListening();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Speech error: ${error.errorMsg}')),
+          );
+        }
       },
     );
 
