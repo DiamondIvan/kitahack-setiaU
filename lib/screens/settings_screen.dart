@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:flutter/material.dart';
-
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -36,10 +34,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'Manage your SetiaU configuration and preferences',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                 ),
                 const SizedBox(height: 24),
                 // Tabs
@@ -56,14 +51,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       label: 'Notifications',
                       icon: Icons.notifications_outlined,
                       isSelected: _selectedTab == 'Notifications',
-                      onTap: () => setState(() => _selectedTab = 'Notifications'),
+                      onTap: () =>
+                          setState(() => _selectedTab = 'Notifications'),
                     ),
                     const SizedBox(width: 12),
                     _SettingsTab(
                       label: 'Integrations',
                       icon: Icons.bolt_outlined,
                       isSelected: _selectedTab == 'Integrations',
-                      onTap: () => setState(() => _selectedTab = 'Integrations'),
+                      onTap: () =>
+                          setState(() => _selectedTab = 'Integrations'),
                     ),
                     const SizedBox(width: 12),
                     _SettingsTab(
@@ -122,7 +119,6 @@ class _SettingsTab extends StatelessWidget {
     required this.icon,
     required this.isSelected,
     required this.onTap,
-    super.key,
   });
 
   @override
@@ -143,10 +139,10 @@ class _SettingsTab extends StatelessWidget {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: const Color(0xFF6A5AE0).withOpacity(0.3),
+                    color: const Color(0xFF6A5AE0).withAlpha(77),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
-                  )
+                  ),
                 ]
               : null,
         ),
@@ -174,7 +170,7 @@ class _SettingsTab extends StatelessWidget {
 }
 
 class _ProfileSection extends StatelessWidget {
-  const _ProfileSection({Key? key}) : super(key: key);
+  const _ProfileSection();
 
   @override
   Widget build(BuildContext context) {
@@ -185,9 +181,15 @@ class _ProfileSection extends StatelessWidget {
           title: 'Organization Profile',
           subtitle: "Manage your organization's information and preferences",
           children: [
-            _InfoField(label: 'Organization Name', value: 'University Student Council'),
+            _InfoField(
+              label: 'Organization Name',
+              value: 'University Student Council',
+            ),
             const SizedBox(height: 16),
-            _InfoField(label: 'Organization Type', value: 'Student Organization'),
+            _InfoField(
+              label: 'Organization Type',
+              value: 'Student Organization',
+            ),
             const SizedBox(height: 16),
             _InfoField(label: 'Number of Members', value: '30'),
             const SizedBox(height: 16),
@@ -199,7 +201,7 @@ class _ProfileSection extends StatelessWidget {
           title: 'AI Preferences',
           subtitle: "Configure how SetiaU's AI assistant behaves",
           children: [
-             _SwitchRow(
+            _SwitchRow(
               title: 'Auto-intervention',
               subtitle: 'AI suggests alternatives when constraints detected',
               initialValue: true,
@@ -209,7 +211,7 @@ class _ProfileSection extends StatelessWidget {
               subtitle: 'Automatically check member availability',
               initialValue: true,
             ),
-             _SwitchRow(
+            _SwitchRow(
               title: 'Budget alerts',
               subtitle: 'Warn when approaching budget limits',
               initialValue: true,
@@ -222,25 +224,30 @@ class _ProfileSection extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: () {},
             icon: const Icon(Icons.check, size: 20),
-            label: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
+            label: const Text(
+              'Save Changes',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6A5AE0),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
               elevation: 4,
-              shadowColor: const Color(0xFF6A5AE0).withOpacity(0.4),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              shadowColor: const Color(0xFF6A5AE0).withAlpha(102),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
             ),
           ),
         ),
-         const SizedBox(height: 40),
+        const SizedBox(height: 40),
       ],
     );
   }
 }
 
 class _NotificationsSection extends StatelessWidget {
-  const _NotificationsSection({Key? key}) : super(key: key);
+  const _NotificationsSection();
 
   @override
   Widget build(BuildContext context) {
@@ -301,25 +308,30 @@ class _NotificationsSection extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: () {},
             icon: const Icon(Icons.check, size: 20),
-            label: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
+            label: const Text(
+              'Save Changes',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6A5AE0),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 18),
               elevation: 4,
-              shadowColor: const Color(0xFF6A5AE0).withOpacity(0.4),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              shadowColor: const Color(0xFF6A5AE0).withAlpha(102),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
             ),
           ),
         ),
-         const SizedBox(height: 40),
+        const SizedBox(height: 40),
       ],
     );
   }
 }
 
 class _IntegrationsSection extends StatelessWidget {
-  const _IntegrationsSection({Key? key}) : super(key: key);
+  const _IntegrationsSection();
 
   @override
   Widget build(BuildContext context) {
@@ -339,17 +351,28 @@ class _IntegrationsSection extends StatelessWidget {
               child: Row(
                 children: [
                   Container(
-                     width: 40,
-                     height: 40,
-                     decoration: BoxDecoration(
-                       color: Colors.white,
-                       borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))
-                        ]
-                     ),
-                     alignment: Alignment.center,
-                     child: const Text('G', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue)), 
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(13),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'G',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Column(
@@ -357,7 +380,10 @@ class _IntegrationsSection extends StatelessWidget {
                     children: [
                       const Text(
                         'Google Account',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                       Text(
                         'demo@setiau.com',
@@ -367,14 +393,21 @@ class _IntegrationsSection extends StatelessWidget {
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.1),
+                      color: Colors.green.withAlpha(26),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Text(
                       'Connected',
-                      style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12),
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -388,45 +421,48 @@ class _IntegrationsSection extends StatelessWidget {
               initialValue: true,
               compact: true,
             ),
-             _SwitchRow(
+            _SwitchRow(
               title: 'Gmail',
               subtitle: '',
-              icon: Icons.mail_outline, 
+              icon: Icons.mail_outline,
               initialValue: true,
               compact: true,
             ),
-             _SwitchRow(
+            _SwitchRow(
               title: 'Google Docs',
               subtitle: '',
               icon: Icons.description_outlined,
               initialValue: true,
               compact: true,
             ),
-             _SwitchRow(
+            _SwitchRow(
               title: 'Google Sheets',
               subtitle: '',
-               icon: Icons.table_chart_outlined,
+              icon: Icons.table_chart_outlined,
               initialValue: true,
               compact: true,
             ),
           ],
         ),
-         const SizedBox(height: 24),
-         _SectionCard(
+        const SizedBox(height: 24),
+        _SectionCard(
           title: 'AI Model Configuration',
           subtitle: "Gemini 3.0 Pro API settings",
           children: [
             // Placeholder for content not fully visible in screenshot
-            const Text('Gemini 3.0 Pro API settings', style: TextStyle(color: Colors.grey)), 
+            const Text(
+              'Gemini 3.0 Pro API settings',
+              style: TextStyle(color: Colors.grey),
+            ),
           ],
-         ),
+        ),
       ],
     );
   }
 }
 
 class _SecuritySection extends StatelessWidget {
-  const _SecuritySection({Key? key}) : super(key: key);
+  const _SecuritySection();
 
   @override
   Widget build(BuildContext context) {
@@ -437,7 +473,7 @@ class _SecuritySection extends StatelessWidget {
           title: 'Security & Privacy',
           subtitle: 'Manage access controls and data privacy',
           children: [
-             _SwitchRow(
+            _SwitchRow(
               title: 'Require approval for all actions',
               subtitle: 'Human-in-the-loop for every execution',
               initialValue: true,
@@ -447,7 +483,7 @@ class _SecuritySection extends StatelessWidget {
               subtitle: 'Keep detailed logs of all activities',
               initialValue: true,
             ),
-             _SwitchRow(
+            _SwitchRow(
               title: 'Two-factor authentication',
               subtitle: 'Add extra security layer',
               initialValue: false, // Matches screenshot
@@ -455,7 +491,7 @@ class _SecuritySection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 24),
-         _SectionCard(
+        _SectionCard(
           title: 'Data Management',
           subtitle: 'Control your organizational data',
           children: [
@@ -465,25 +501,41 @@ class _SecuritySection extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Data retention period', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                    const Text(
+                      'Data retention period',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text('Currently: 12 months', style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                    Text(
+                      'Currently: 12 months',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                    ),
                   ],
                 ),
                 OutlinedButton(
-                  onPressed: () {}, 
-                  child: const Text('Configure'),
+                  onPressed: () {},
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF1A1D1E),
                     side: BorderSide(color: Colors.grey.shade300),
                   ),
-                )
+                  child: const Text('Configure'),
+                ),
               ],
             ),
             const SizedBox(height: 24),
-            Text('Export your data', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.grey[800])),
+            Text(
+              'Export your data',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: Colors.grey[800],
+              ),
+            ),
             const SizedBox(height: 12),
-            Container(
+            SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () {},
@@ -494,24 +546,39 @@ class _SecuritySection extends StatelessWidget {
                   foregroundColor: const Color(0xFF1A1D1E), // Dark text
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 24),
-            Text('Danger Zone', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.red[700])),
-             const SizedBox(height: 12),
-             Container(
+            Text(
+              'Danger Zone',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: Colors.red[700],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.red.withOpacity(0.2)),
+                border: Border.all(color: Colors.red.withAlpha(51)),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: TextButton(
                 onPressed: () {},
-                child: Text('Delete Organization Data', style: TextStyle(color: Colors.red[700], fontWeight: FontWeight.bold)),
-                 style: TextButton.styleFrom(
+                style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: Text(
+                  'Delete Organization Data',
+                  style: TextStyle(
+                    color: Colors.red[700],
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -528,11 +595,13 @@ class _SecuritySection extends StatelessWidget {
               backgroundColor: const Color(0xFF6A5AE0),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           ),
         ),
-         const SizedBox(height: 40),
+        const SizedBox(height: 40),
       ],
     );
   }
@@ -551,8 +620,7 @@ class _SectionCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.children,
-    Key? key,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -560,7 +628,7 @@ class _SectionCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.withOpacity(0.2)), // Subtle border
+        side: BorderSide(color: Colors.grey.withAlpha(51)), // Subtle border
       ),
       color: Colors.white,
       child: Padding(
@@ -579,10 +647,7 @@ class _SectionCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               subtitle,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
             const SizedBox(height: 32),
             ...children,
@@ -597,11 +662,7 @@ class _InfoField extends StatelessWidget {
   final String label;
   final String value;
 
-  const _InfoField({
-    required this.label,
-    required this.value,
-    Key? key,
-  }) : super(key: key);
+  const _InfoField({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -626,10 +687,7 @@ class _InfoField extends StatelessWidget {
           ),
           child: Text(
             value,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF4A4A4A),
-            ),
+            style: const TextStyle(fontSize: 14, color: Color(0xFF4A4A4A)),
           ),
         ),
       ],
@@ -650,8 +708,7 @@ class _SwitchRow extends StatefulWidget {
     this.initialValue = true,
     this.icon,
     this.compact = false,
-    Key? key,
-  }) : super(key: key);
+  });
 
   @override
   State<_SwitchRow> createState() => _SwitchRowState();
@@ -671,7 +728,9 @@ class _SwitchRowState extends State<_SwitchRow> {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: widget.compact ? 12.0 : 16.0),
       child: Row(
-        crossAxisAlignment: widget.compact ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+        crossAxisAlignment: widget.compact
+            ? CrossAxisAlignment.center
+            : CrossAxisAlignment.start,
         children: [
           if (widget.icon != null) ...[
             Icon(widget.icon, size: 24, color: Colors.grey[600]),
@@ -694,10 +753,7 @@ class _SwitchRowState extends State<_SwitchRow> {
                     padding: const EdgeInsets.only(top: 4.0),
                     child: Text(
                       widget.subtitle,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                   ),
               ],
@@ -707,17 +763,17 @@ class _SwitchRowState extends State<_SwitchRow> {
           Switch(
             value: _value,
             onChanged: (val) => setState(() => _value = val),
-            activeColor: const Color(0xFF6A5AE0),
+            activeThumbColor: const Color(0xFF6A5AE0),
             inactiveThumbColor: Colors.grey[400],
             inactiveTrackColor: Colors.grey[200],
-            trackOutlineColor: MaterialStateProperty.resolveWith(
-              (final Set<MaterialState> states) {
-                if (states.contains(MaterialState.selected)) {
-                   return null; 
-                }
-                return Colors.grey[300];
-              },
-            ),
+            trackOutlineColor: WidgetStateProperty.resolveWith((
+              final Set<WidgetState> states,
+            ) {
+              if (states.contains(WidgetState.selected)) {
+                return null;
+              }
+              return Colors.grey[300];
+            }),
           ),
         ],
       ),

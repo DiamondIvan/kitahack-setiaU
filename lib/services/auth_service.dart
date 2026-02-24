@@ -1,5 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
@@ -43,6 +43,11 @@ class AuthService {
   // Sign in with Google
   Future<UserCredential?> signInWithGoogle() async {
     try {
+      if (kIsWeb) {
+        final provider = GoogleAuthProvider();
+        return await _auth.signInWithPopup(provider);
+      }
+
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
@@ -67,6 +72,11 @@ class AuthService {
   // Sign out
   Future<void> signOut() async {
     try {
+      if (kIsWeb) {
+        await _auth.signOut();
+        return;
+      }
+
       await Future.wait([_auth.signOut(), _googleSignIn.signOut()]);
     } catch (e) {
       debugPrint('Error signing out: $e');

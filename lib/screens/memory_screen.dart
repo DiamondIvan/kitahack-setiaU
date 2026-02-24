@@ -16,7 +16,8 @@ class _MemoryScreenState extends State<MemoryScreen> {
       'type': 'meeting',
       'title': 'Annual General Meeting 2026',
       'date': 'February 15, 2026',
-      'description': 'Discussed charity run planning, budget allocation for Q1, and new membership drive.',
+      'description':
+          'Discussed charity run planning, budget allocation for Q1, and new membership drive.',
       'tags': ['agm', 'planning', 'budget'],
       'participants': ['S', 'A', 'M', '+3'],
     },
@@ -24,7 +25,8 @@ class _MemoryScreenState extends State<MemoryScreen> {
       'type': 'decision',
       'title': 'Charity Run Date Changed',
       'date': 'February 22, 2026',
-      'description': 'Moved Charity Run from March 12 (weekday) to March 15 (Saturday) due to availability constraints.',
+      'description':
+          'Moved Charity Run from March 12 (weekday) to March 15 (Saturday) due to availability constraints.',
       'tags': ['charity-run', 'scheduling'],
     },
     {
@@ -63,13 +65,33 @@ class _MemoryScreenState extends State<MemoryScreen> {
           // Stats Row
           Row(
             children: [
-              _buildStatCard('Total\nMeetings', '3', Icons.calendar_today, const Color(0xFF6A5AE0)),
+              _buildStatCard(
+                'Total\nMeetings',
+                '3',
+                Icons.calendar_today,
+                const Color(0xFF6A5AE0),
+              ),
               const SizedBox(width: 16),
-              _buildStatCard('Decisions\nMade', '2', Icons.description_outlined, const Color(0xFF6A5AE0)),
+              _buildStatCard(
+                'Decisions\nMade',
+                '2',
+                Icons.description_outlined,
+                const Color(0xFF6A5AE0),
+              ),
               const SizedBox(width: 16),
-              _buildStatCard('Budget\nEntries', '2', Icons.attach_money, const Color(0xFF6A5AE0)),
+              _buildStatCard(
+                'Budget\nEntries',
+                '2',
+                Icons.attach_money,
+                const Color(0xFF6A5AE0),
+              ),
               const SizedBox(width: 16),
-              _buildStatCard('Active\nTasks', '1', Icons.people_outline, const Color(0xFF6A5AE0)),
+              _buildStatCard(
+                'Active\nTasks',
+                '1',
+                Icons.people_outline,
+                const Color(0xFF6A5AE0),
+              ),
             ],
           ),
           const SizedBox(height: 32),
@@ -81,9 +103,12 @@ class _MemoryScreenState extends State<MemoryScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white, // Colors.grey[100] in screenshot looks light
+                    color: Colors
+                        .white, // Colors.grey[100] in screenshot looks light
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.transparent), // No visible border in screenshot
+                    border: Border.all(
+                      color: Colors.transparent,
+                    ), // No visible border in screenshot
                   ),
                   child: TextField(
                     controller: _searchController,
@@ -96,13 +121,32 @@ class _MemoryScreenState extends State<MemoryScreen> {
                 ),
               ),
               const SizedBox(width: 16),
-              _buildFilterButton('All', 'All', isActive: true),
+              _buildFilterButton(
+                'All',
+                'All',
+                isActive: _selectedFilter == 'All',
+              ),
               const SizedBox(width: 8),
-              _buildFilterButton('Meetings', 'Meetings', icon: Icons.calendar_today),
+              _buildFilterButton(
+                'Meetings',
+                'Meetings',
+                icon: Icons.calendar_today,
+                isActive: _selectedFilter == 'Meetings',
+              ),
               const SizedBox(width: 8),
-              _buildFilterButton('Decisions', 'Decisions', icon: Icons.description_outlined),
+              _buildFilterButton(
+                'Decisions',
+                'Decisions',
+                icon: Icons.description_outlined,
+                isActive: _selectedFilter == 'Decisions',
+              ),
               const SizedBox(width: 8),
-              _buildFilterButton('Budget', 'Budget', icon: Icons.attach_money),
+              _buildFilterButton(
+                'Budget',
+                'Budget',
+                icon: Icons.attach_money,
+                isActive: _selectedFilter == 'Budget',
+              ),
             ],
           ),
           const SizedBox(height: 32),
@@ -131,7 +175,9 @@ class _MemoryScreenState extends State<MemoryScreen> {
                       style: TextStyle(color: Color(0xFF7B7B93)),
                     ),
                     const SizedBox(height: 24),
-                    ..._memoryEntries.map((entry) => _buildTimelineEntry(entry)),
+                    ..._memoryEntries.map(
+                      (entry) => _buildTimelineEntry(entry),
+                    ),
                   ],
                 ),
               ),
@@ -154,7 +200,12 @@ class _MemoryScreenState extends State<MemoryScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Expanded(
       child: Container(
         height: 140,
@@ -164,7 +215,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withAlpha(13),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -199,7 +250,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withAlpha(26),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 24),
@@ -210,7 +261,12 @@ class _MemoryScreenState extends State<MemoryScreen> {
     );
   }
 
-  Widget _buildFilterButton(String id, String label, {IconData? icon, bool isActive = false}) {
+  Widget _buildFilterButton(
+    String id,
+    String label, {
+    IconData? icon,
+    bool isActive = false,
+  }) {
     return InkWell(
       onTap: () => setState(() => _selectedFilter = id),
       child: Container(
@@ -218,13 +274,19 @@ class _MemoryScreenState extends State<MemoryScreen> {
         decoration: BoxDecoration(
           color: isActive ? const Color(0xFF8F67E8) : Colors.white,
           borderRadius: BorderRadius.circular(8),
-          border: isActive ? null : Border.all(color: Colors.grey.withOpacity(0.2)),
+          border: isActive
+              ? null
+              : Border.all(color: Colors.grey.withAlpha(51)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 16, color: isActive ? Colors.white : Colors.black87),
+              Icon(
+                icon,
+                size: 16,
+                color: isActive ? Colors.white : Colors.black87,
+              ),
               const SizedBox(width: 8),
             ],
             Text(
@@ -249,22 +311,22 @@ class _MemoryScreenState extends State<MemoryScreen> {
       case 'meeting':
         icon = Icons.calendar_today;
         color = Colors.blue;
-        bgColor = Colors.blue.withOpacity(0.1);
+        bgColor = Colors.blue.withAlpha(26);
         break;
       case 'decision':
         icon = Icons.description_outlined;
         color = Colors.purple;
-        bgColor = Colors.purple.withOpacity(0.1);
+        bgColor = Colors.purple.withAlpha(26);
         break;
       case 'budget':
         icon = Icons.attach_money; // Or generic currency icon
         color = Colors.green;
-        bgColor = Colors.green.withOpacity(0.1);
+        bgColor = Colors.green.withAlpha(26);
         break;
       default:
         icon = Icons.circle;
         color = Colors.grey;
-        bgColor = Colors.grey.withOpacity(0.1);
+        bgColor = Colors.grey.withAlpha(26);
     }
 
     return IntrinsicHeight(
@@ -280,15 +342,12 @@ class _MemoryScreenState extends State<MemoryScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,
-                  border: Border.all(color: color.withOpacity(0.5), width: 1.5),
+                  border: Border.all(color: color.withAlpha(128), width: 1.5),
                 ),
                 child: Icon(icon, size: 20, color: color),
               ),
               Expanded(
-                child: Container(
-                  width: 2,
-                  color: Colors.grey.withOpacity(0.2),
-                ),
+                child: Container(width: 2, color: Colors.grey.withAlpha(51)),
               ),
             ],
           ),
@@ -303,12 +362,12 @@ class _MemoryScreenState extends State<MemoryScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withAlpha(13),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
                 ],
-                border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                border: Border.all(color: Colors.grey.withAlpha(26)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,7 +384,10 @@ class _MemoryScreenState extends State<MemoryScreen> {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: bgColor,
                           borderRadius: BorderRadius.circular(12),
@@ -344,18 +406,28 @@ class _MemoryScreenState extends State<MemoryScreen> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.access_time, size: 14, color: Colors.grey),
+                      const Icon(
+                        Icons.access_time,
+                        size: 14,
+                        color: Colors.grey,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         entry['date'],
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Text(
                     entry['description'],
-                    style: const TextStyle(color: Color(0xFF5A5A6D), height: 1.5),
+                    style: const TextStyle(
+                      color: Color(0xFF5A5A6D),
+                      height: 1.5,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   if (entry['participants'] != null) ...[
@@ -383,12 +455,15 @@ class _MemoryScreenState extends State<MemoryScreen> {
                   ],
                   if (entry['amount'] != null) ...[
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.green[50],
                         borderRadius: BorderRadius.circular(8),
                       ),
-                       child: Text(
+                      child: Text(
                         entry['amount'],
                         style: TextStyle(
                           color: Colors.green[800],
@@ -404,7 +479,10 @@ class _MemoryScreenState extends State<MemoryScreen> {
                     children: [
                       for (var tag in entry['tags'])
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.grey[100],
                             borderRadius: BorderRadius.circular(20),
@@ -412,7 +490,10 @@ class _MemoryScreenState extends State<MemoryScreen> {
                           ),
                           child: Text(
                             tag,
-                            style: const TextStyle(fontSize: 12, color: Colors.black87),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.black87,
+                            ),
                           ),
                         ),
                     ],
@@ -434,7 +515,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -458,17 +539,30 @@ class _MemoryScreenState extends State<MemoryScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          const Text('Most Active Period', style: TextStyle(color: Colors.grey, fontSize: 12)),
+          const Text(
+            'Most Active Period',
+            style: TextStyle(color: Colors.grey, fontSize: 12),
+          ),
           const SizedBox(height: 4),
           const Text(
             'February 2026',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2D2A4A)),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2D2A4A),
+            ),
           ),
-          const Text('8 recorded activities', style: TextStyle(color: Colors.grey, fontSize: 12)),
+          const Text(
+            '8 recorded activities',
+            style: TextStyle(color: Colors.grey, fontSize: 12),
+          ),
           const SizedBox(height: 24),
           const Divider(),
           const SizedBox(height: 16),
-          const Text('Top Contributors', style: TextStyle(color: Colors.grey, fontSize: 12)),
+          const Text(
+            'Top Contributors',
+            style: TextStyle(color: Colors.grey, fontSize: 12),
+          ),
           const SizedBox(height: 12),
           _buildContributorRow('Sarah', '5 meetings'),
           _buildContributorRow('Ali', '4 meetings'),
@@ -476,16 +570,19 @@ class _MemoryScreenState extends State<MemoryScreen> {
           const SizedBox(height: 24),
           const Divider(),
           const SizedBox(height: 16),
-          const Text('Popular Tags', style: TextStyle(color: Colors.grey, fontSize: 12)),
+          const Text(
+            'Popular Tags',
+            style: TextStyle(color: Colors.grey, fontSize: 12),
+          ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-               _buildTag('charity-run'),
-               _buildTag('planning'),
-               _buildTag('budget'),
-               _buildTag('marketing'),
+              _buildTag('charity-run'),
+              _buildTag('planning'),
+              _buildTag('budget'),
+              _buildTag('marketing'),
             ],
           ),
         ],
@@ -506,7 +603,10 @@ class _MemoryScreenState extends State<MemoryScreen> {
               color: Colors.grey[100],
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(count, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            child: Text(
+              count,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
           ),
         ],
       ),
@@ -532,7 +632,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -557,11 +657,11 @@ class _MemoryScreenState extends State<MemoryScreen> {
           ),
           const SizedBox(height: 24),
           Row(
-             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-             children: const [
-               Text('Storage Used', style: TextStyle(color: Colors.grey)),
-               Text('48 MB', style: TextStyle(fontWeight: FontWeight.bold)),
-             ],
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              Text('Storage Used', style: TextStyle(color: Colors.grey)),
+              Text('48 MB', style: TextStyle(fontWeight: FontWeight.bold)),
+            ],
           ),
           const SizedBox(height: 8),
           ClipRRect(
@@ -574,7 +674,10 @@ class _MemoryScreenState extends State<MemoryScreen> {
             ),
           ),
           const SizedBox(height: 4),
-          const Text('102 MB available', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          const Text(
+            '102 MB available',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
           const SizedBox(height: 24),
           const Text('Export Options', style: TextStyle(color: Colors.grey)),
           const SizedBox(height: 12),

@@ -16,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final AuthService _authService = AuthService();
   int _currentTabIndex = 1;
-  // 0: Meeting Mode, 1: Dashboard, 2: Settings
+  // 0: Meeting Mode, 1: Dashboard, 2: Settings, 3: Memory
 
   void _redirectToLogin() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -24,10 +24,10 @@ class _HomeScreenState extends State<HomeScreen> {
       Navigator.of(context).pushReplacementNamed('/login');
     });
   }
-  
+
   @override
   Widget build(BuildContext context) {
-return StreamBuilder<User?>(
+    return StreamBuilder<User?>(
       stream: _authService.authStateChanges,
       builder: (context, snapshot) {
         // 1. Show loading spinner while checking auth status
@@ -61,134 +61,190 @@ return StreamBuilder<User?>(
                     end: Alignment.bottomRight,
                   ),
                 ),
-              ),
-            ),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: const Icon(Icons.account_circle, color: Color(0xFF6A5AE0), size: 32),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 32,
+                        horizontal: 24,
                       ),
-                      const SizedBox(width: 16),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text('SetiaU', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                          Text('AI Secretary', style: TextStyle(fontSize: 14, color: Colors.white70)),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                // Navigation
-                _SidebarItem(
-                  icon: Icons.dashboard,
-                  label: 'Dashboard',
-                  selected: _currentTabIndex == 1,
-                  onTap: () => setState(() => _currentTabIndex = 1),
-                ),
-                _SidebarItem(
-                  icon: Icons.mic,
-                  label: 'Meeting Mode',
-                  selected: _currentTabIndex == 0,
-                  onTap: () => setState(() => _currentTabIndex = 0),
-                ),
-                _SidebarItem(
-                  icon: Icons.storage, // Using storage as a placeholder for Memory
-                  label: 'Memory',
-                  selected: _currentTabIndex == 3,
-                  onTap: () => setState(() => _currentTabIndex = 3),
-                ),
-                _SidebarItem(
-                  icon: Icons.settings,
-                  label: 'Settings',
-                  selected: _currentTabIndex == 2,
-                  onTap: () => setState(() => _currentTabIndex = 2),
-                ),
-                const Spacer(),
-                // User info
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundColor: Colors.white,
-                        child: const Text('D', style: TextStyle(color: Color(0xFF6A5AE0), fontWeight: FontWeight.bold)),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text('demo@setiau.com', style: TextStyle(fontSize: 14, color: Colors.white)),
-                          Text('Admin', style: TextStyle(fontSize: 12, color: Colors.white70)),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 24, left: 16, right: 16),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () async {
-                          await _authService.signOut();
-                          if (mounted) {
-                            Navigator.of(context).pushReplacementNamed('/login');
-                          }
-                        },
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Icon(
+                              Icons.account_circle,
+                              color: Color(0xFF6A5AE0),
+                              size: 32,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: const [
-                              Icon(Icons.logout, color: Colors.white, size: 20),
-                              SizedBox(width: 8),
-                              Text('Sign Out', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                              Text(
+                                'SetiaU',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                'AI Secretary',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white70,
+                                ),
+                              ),
                             ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Navigation
+                    _SidebarItem(
+                      icon: Icons.dashboard,
+                      label: 'Dashboard',
+                      selected: _currentTabIndex == 1,
+                      onTap: () => setState(() => _currentTabIndex = 1),
+                    ),
+                    _SidebarItem(
+                      icon: Icons.mic,
+                      label: 'Meeting Mode',
+                      selected: _currentTabIndex == 0,
+                      onTap: () => setState(() => _currentTabIndex = 0),
+                    ),
+                    _SidebarItem(
+                      icon: Icons
+                          .storage, // Using storage as a placeholder for Memory
+                      label: 'Memory',
+                      selected: _currentTabIndex == 3,
+                      onTap: () => setState(() => _currentTabIndex = 3),
+                    ),
+                    _SidebarItem(
+                      icon: Icons.settings,
+                      label: 'Settings',
+                      selected: _currentTabIndex == 2,
+                      onTap: () => setState(() => _currentTabIndex = 2),
+                    ),
+                    const Spacer(),
+                    // User info
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 20,
+                            backgroundColor: Colors.white,
+                            child: const Text(
+                              'D',
+                              style: TextStyle(
+                                color: Color(0xFF6A5AE0),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'demo@setiau.com',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                'Admin',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        bottom: 24,
+                        left: 16,
+                        right: 16,
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(26),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white.withAlpha(51)),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () async {
+                              final navigator = Navigator.of(context);
+                              await _authService.signOut();
+                              if (!mounted) return;
+                              navigator.pushReplacementNamed('/login');
+                            },
+                            borderRadius: BorderRadius.circular(12),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 16,
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Icon(
+                                    Icons.logout,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Sign Out',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
+                  ],
+                ),
+              ),
+              // Main content
+              Expanded(
+                child: Container(
+                  color: const Color(0xFFF5F6FA),
+                  child: IndexedStack(
+                    index: _currentTabIndex,
+                    children: const [
+                      MeetingModeScreen(),
+                      DashboardModeScreen(),
+                      SettingsScreen(),
+                      MemoryScreen(),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-          // Main content
-          Expanded(
-            child: Container(
-              color: const Color(0xFFF5F6FA),
-              child: IndexedStack(
-                index: _currentTabIndex,
-                children: const [
-                  MeetingModeScreen(),
-                  DashboardModeScreen(),
-                  SettingsScreen(),
-                  MemoryScreen(),
-                ],
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -205,7 +261,6 @@ class _SidebarItem extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
-    super.key,
   });
 
   @override
@@ -221,15 +276,15 @@ class _SidebarItem extends StatelessWidget {
             duration: const Duration(milliseconds: 250),
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
             decoration: BoxDecoration(
-              color: selected ? Colors.white.withOpacity(0.15) : Colors.transparent,
+              color: selected ? Colors.white.withAlpha(38) : Colors.transparent,
               borderRadius: BorderRadius.circular(16),
               boxShadow: selected
                   ? [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Colors.black.withAlpha(26),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
-                      )
+                      ),
                     ]
                   : [],
             ),
@@ -237,20 +292,21 @@ class _SidebarItem extends StatelessWidget {
               children: [
                 Icon(
                   icon,
-                  color: selected ? Colors.white : Colors.white.withOpacity(0.7),
+                  color: selected ? Colors.white : Colors.white.withAlpha(179),
                   size: 24,
                 ),
                 const SizedBox(width: 16),
                 Text(
                   label,
                   style: TextStyle(
-                    color: selected ? Colors.white : Colors.white.withOpacity(0.7),
+                    color: selected
+                        ? Colors.white
+                        : Colors.white.withAlpha(179),
                     fontWeight: selected ? FontWeight.bold : FontWeight.w500,
                     fontSize: 15,
                   ),
                 ),
-                if (selected)
-                  const Spacer(),
+                if (selected) const Spacer(),
                 if (selected)
                   Container(
                     width: 6,

@@ -117,13 +117,33 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
           // Stats Cards
           Row(
             children: [
-              _buildStatCard('Meetings This\nMonth', '12', Icons.calendar_today, Colors.blue),
+              _buildStatCard(
+                'Meetings This\nMonth',
+                '12',
+                Icons.calendar_today,
+                Colors.blue,
+              ),
               const SizedBox(width: 16),
-              _buildStatCard('Tasks\nCompleted', '48', Icons.check_circle_outline, Colors.green),
+              _buildStatCard(
+                'Tasks\nCompleted',
+                '48',
+                Icons.check_circle_outline,
+                Colors.green,
+              ),
               const SizedBox(width: 16),
-              _buildStatCard('Pending\nApprovals', '3', Icons.access_time, Colors.amber),
+              _buildStatCard(
+                'Pending\nApprovals',
+                '3',
+                Icons.access_time,
+                Colors.amber,
+              ),
               const SizedBox(width: 16),
-              _buildStatCard('Active\nMembers', '24', Icons.people_outline, Colors.purple),
+              _buildStatCard(
+                'Active\nMembers',
+                '24',
+                Icons.people_outline,
+                Colors.purple,
+              ),
             ],
           ),
           const SizedBox(height: 32),
@@ -155,7 +175,12 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Expanded(
       child: Container(
         height: 160,
@@ -165,7 +190,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.15),
+              color: color.withAlpha(38),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -193,7 +218,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
+                    color: color.withAlpha(26),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(icon, color: color, size: 24),
@@ -246,10 +271,10 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.06),
+                    color: Colors.black.withAlpha(15),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
-                  )
+                  ),
                 ]
               : [],
         ),
@@ -259,7 +284,9 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
               label,
               style: TextStyle(
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                color: isSelected ? const Color(0xFF2D2A4A) : const Color(0xFF9090A7),
+                color: isSelected
+                    ? const Color(0xFF2D2A4A)
+                    : const Color(0xFF9090A7),
                 fontSize: 14,
               ),
             ),
@@ -268,7 +295,9 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isSelected ? const Color(0xFFE02E4C) : const Color(0xFFE02E4C).withOpacity(0.7),
+                  color: isSelected
+                      ? const Color(0xFFE02E4C)
+                      : const Color(0xFFE02E4C).withAlpha(179),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -313,7 +342,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.amber.withOpacity(0.1),
+                color: Colors.amber.withAlpha(26),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -325,10 +354,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Container(
-                    width: 8,
-                    color: Colors.amber[400],
-                  ),
+                  Container(width: 8, color: Colors.amber[400]),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
@@ -346,14 +372,20 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                                       color: Colors.amber[50],
                                       borderRadius: BorderRadius.circular(16),
                                     ),
-                                    child: Icon(Icons.calendar_today, color: Colors.amber[700], size: 24),
+                                    child: Icon(
+                                      Icons.calendar_today,
+                                      color: Colors.amber[700],
+                                      size: 24,
+                                    ),
                                   ),
                                   const SizedBox(width: 16),
                                   Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        action.payload['eventName'] ?? 'Untitled Event',
+                                        action.payload['eventName'] ??
+                                            'Untitled Event',
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -374,13 +406,17 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                                 ],
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: Colors.amber[50], // Soft amber background
+                                  color:
+                                      Colors.amber[50], // Soft amber background
                                   borderRadius: BorderRadius.circular(30),
                                 ),
                                 child: Text(
-                                  (action.actionType ?? 'General').toUpperCase(),
+                                  action.actionType.toUpperCase(),
                                   style: TextStyle(
                                     color: Colors.amber[800],
                                     fontWeight: FontWeight.bold,
@@ -403,7 +439,11 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                               children: [
                                 Row(
                                   children: [
-                                    const Icon(Icons.access_time_filled, size: 16, color: Color(0xFF7B7B93)),
+                                    const Icon(
+                                      Icons.access_time_filled,
+                                      size: 16,
+                                      color: Color(0xFF7B7B93),
+                                    ),
                                     const SizedBox(width: 8),
                                     Text(
                                       '${action.payload['date']} at ${action.payload['time']}',
@@ -417,10 +457,15 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                                 const SizedBox(height: 8),
                                 Row(
                                   children: [
-                                    const Icon(Icons.location_on, size: 16, color: Color(0xFF7B7B93)),
+                                    const Icon(
+                                      Icons.location_on,
+                                      size: 16,
+                                      color: Color(0xFF7B7B93),
+                                    ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      action.payload['venue'] ?? 'No venue specified',
+                                      action.payload['venue'] ??
+                                          'No venue specified',
                                       style: const TextStyle(
                                         color: Color(0xFF2D2A4A),
                                         fontWeight: FontWeight.w500,
@@ -446,7 +491,11 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                             children: [
                               Text(
                                 'Generated 2 mins ago',
-                                style: TextStyle(fontSize: 12, color: Colors.grey[400], fontWeight: FontWeight.w500),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[400],
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                               Row(
                                 children: [
@@ -454,9 +503,17 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                                     onPressed: () => _rejectAction(action.id),
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: const Color(0xFFE02E4C),
-                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                      side: const BorderSide(color: Color(0xFFE02E4C), width: 1.5),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 16,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      side: const BorderSide(
+                                        color: Color(0xFFE02E4C),
+                                        width: 1.5,
+                                      ),
                                     ),
                                     child: const Text('Reject'),
                                   ),
@@ -468,9 +525,14 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: const Color(0xFF1CAE4B),
                                       foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 16,
+                                      ),
                                       elevation: 0,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -515,7 +577,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
         'time': 'Yesterday',
         'icon': Icons.person_add,
         'color': const Color(0xFFF2994A),
-      }
+      },
     ];
 
     return Container(
@@ -525,7 +587,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withAlpha(10),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -545,10 +607,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                   color: Color(0xFF2D2A4A),
                 ),
               ),
-              TextButton(
-                onPressed: () {},
-                child: const Text('View All'),
-              ),
+              TextButton(onPressed: () {}, child: const Text('View All')),
             ],
           ),
           const SizedBox(height: 24),
@@ -559,7 +618,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
             itemBuilder: (context, index) {
               final activity = activities[index];
               final isLast = index == activities.length - 1;
-              
+
               return IntrinsicHeight(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -571,10 +630,17 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             shape: BoxShape.circle,
-                            border: Border.all(color: (activity['color'] as Color).withOpacity(0.5), width: 2),
+                            border: Border.all(
+                              color: (activity['color'] as Color).withAlpha(
+                                128,
+                              ),
+                              width: 2,
+                            ),
                             boxShadow: [
-                               BoxShadow(
-                                color: (activity['color'] as Color).withOpacity(0.2),
+                              BoxShadow(
+                                color: (activity['color'] as Color).withAlpha(
+                                  51,
+                                ),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -709,7 +775,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -727,18 +793,12 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: const TextStyle(color: Color(0xFF7B7B93)),
-          ),
+          Text(subtitle, style: const TextStyle(color: Color(0xFF7B7B93))),
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                label,
-                style: const TextStyle(color: Color(0xFF7B7B93)),
-              ),
+              Text(label, style: const TextStyle(color: Color(0xFF7B7B93))),
               Text(
                 value,
                 style: TextStyle(
