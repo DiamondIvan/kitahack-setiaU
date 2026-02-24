@@ -89,12 +89,12 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-             color: Colors.black.withOpacity(0.05),
-             blurRadius: 10,
-             offset: const Offset(0, 4),
+            color: Colors.black.withAlpha(13),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: Colors.grey.withAlpha(26)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,17 +115,26 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
           const SizedBox(height: 48),
           Center(
             child: SizedBox(
-               height: 56,
-               width: 220,
-               child: ElevatedButton.icon(
+              height: 56,
+              width: 220,
+              child: ElevatedButton.icon(
                 onPressed: _toggleRecording,
-                icon: Icon(_isRecording ? Icons.stop : Icons.mic, color: Colors.white),
+                icon: Icon(
+                  _isRecording ? Icons.stop : Icons.mic,
+                  color: Colors.white,
+                ),
                 label: Text(
                   _isRecording ? 'Stop Meeting' : 'Start Meeting',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _isRecording ? Colors.red : const Color(0xFF6A5AE0),
+                  backgroundColor: _isRecording
+                      ? Colors.red
+                      : const Color(0xFF6A5AE0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -149,12 +158,12 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: Colors.grey.withAlpha(26)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,12 +204,12 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
-         border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: Colors.grey.withAlpha(26)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,7 +241,11 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.description_outlined, size: 48, color: Colors.grey[300]),
+                  Icon(
+                    Icons.description_outlined,
+                    size: 48,
+                    color: Colors.grey[300],
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'No tasks extracted yet',
@@ -255,12 +268,12 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: Colors.grey.withAlpha(26)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -288,10 +301,7 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: const TextStyle(color: Color(0xFF7B7B93)),
-        ),
+        Text(label, style: const TextStyle(color: Color(0xFF7B7B93))),
         Text(
           value,
           style: const TextStyle(

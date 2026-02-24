@@ -4,11 +4,7 @@ class StatBox extends StatelessWidget {
   final String label;
   final String value;
 
-  const StatBox({
-    required this.label,
-    required this.value,
-    Key? key,
-  }) : super(key: key);
+  const StatBox({required this.label, required this.value, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +16,19 @@ class StatBox extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF6A5AE0))),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF6A5AE0),
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF7B7B93))),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12, color: Color(0xFF7B7B93)),
+          ),
         ],
       ),
     );

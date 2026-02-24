@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:kitahack_setiau/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -44,9 +44,9 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) {
@@ -66,12 +66,20 @@ class _LoginScreenState extends State<LoginScreen> {
       final result = await _authService.signInWithGoogle();
       if (result != null && mounted) {
         Navigator.of(context).pushReplacementNamed('/home');
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Google sign-in was cancelled or blocked. Please try again.',
+            ),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) {
@@ -109,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontSize: 48,
                           fontWeight: FontWeight.bold,
                           letterSpacing: -1.5,
-                          color: Colors.white, // Required for ShaderMask
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -136,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF6A5AE0).withOpacity(0.1),
+                      color: const Color(0xFF6A5AE0).withAlpha(26),
                       blurRadius: 30,
                       offset: const Offset(0, 10),
                     ),
@@ -156,19 +164,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 8),
                     Text(
                       'Please sign in to continue',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[500],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                     ),
                     const SizedBox(height: 32),
-                    
+
                     // Email Field
                     TextFormField(
                       controller: _emailController,
                       decoration: InputDecoration(
                         labelText: 'Email',
-                        prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF6A5AE0)),
+                        prefixIcon: const Icon(
+                          Icons.email_outlined,
+                          color: Color(0xFF6A5AE0),
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(color: Colors.grey[300]!),
@@ -179,27 +187,37 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF6A5AE0), width: 2),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF6A5AE0),
+                            width: 2,
+                          ),
                         ),
                         filled: true,
                         fillColor: const Color(0xFFF8F9FE),
                       ),
                     ),
                     const SizedBox(height: 20),
-                    
+
                     // Password Field
                     TextFormField(
                       controller: _passwordController,
                       obscureText: !_isPasswordVisible,
                       decoration: InputDecoration(
                         labelText: 'Password',
-                        prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF6A5AE0)),
+                        prefixIcon: const Icon(
+                          Icons.lock_outline,
+                          color: Color(0xFF6A5AE0),
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _isPasswordVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            _isPasswordVisible
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
                             color: Colors.grey[500],
                           ),
-                          onPressed: () => setState(() => _isPasswordVisible = !_isPasswordVisible),
+                          onPressed: () => setState(
+                            () => _isPasswordVisible = !_isPasswordVisible,
+                          ),
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -211,14 +229,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Color(0xFF6A5AE0), width: 2),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF6A5AE0),
+                            width: 2,
+                          ),
                         ),
                         filled: true,
                         fillColor: const Color(0xFFF8F9FE),
                       ),
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // Forgot Password
                     Align(
                       alignment: Alignment.centerRight,
@@ -231,7 +252,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Login Button
                     ElevatedButton(
                       onPressed: _isLoading ? null : _signInWithEmail,
@@ -252,9 +273,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    
                     const SizedBox(height: 24),
-                    
+
                     // Divider
                     Row(
                       children: [
@@ -273,13 +293,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         Expanded(child: Divider(color: Colors.grey[200])),
                       ],
                     ),
-                    
                     const SizedBox(height: 24),
-                    
+
                     // Google Sign In
                     OutlinedButton.icon(
                       onPressed: _isLoading ? null : _signInWithGoogle,
-                      icon: const Icon(Icons.g_mobiledata, size: 28), // Or custom asset if available
+                      icon: const Icon(Icons.g_mobiledata, size: 28),
                       label: const Text('Sign in with Google'),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
