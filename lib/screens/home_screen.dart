@@ -18,21 +18,49 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentTabIndex = 1;
   // 0: Meeting Mode, 1: Dashboard, 2: Settings
 
+  void _redirectToLogin() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed('/login');
+    });
+  }
+  
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
-      body: Row(
-        children: [
-          // Sidebar
-          Container(
-            width: 260,
-            height: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF6A5AE0), Color(0xFF8F67E8)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+return StreamBuilder<User?>(
+      stream: _authService.authStateChanges,
+      builder: (context, snapshot) {
+        // 1. Show loading spinner while checking auth status
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // 2. Redirect to login if they are not authenticated
+        if (!snapshot.hasData) {
+          _redirectToLogin();
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // 3. User is logged in! Show the new MVP Sidebar layout
+        return Scaffold(
+          backgroundColor: const Color(0xFFF5F6FA),
+          body: Row(
+            children: [
+              // Sidebar
+              Container(
+                width: 260,
+                height: double.infinity,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF6A5AE0), Color(0xFF8F67E8)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
               ),
             ),
             child: Column(

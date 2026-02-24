@@ -12,7 +12,28 @@
           "package_name": "com.example.kitahack_setiau"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "709834819237-70odcahtniv3prj2f5fvj9q231cg06qp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.kitahack_setiau",
+            "certificate_hash": "830ada2695285bdb632c6d5603882b999840c71a"
+          }
+        },
+        {
+          "client_id": "709834819237-vlhvsu3uch34prglj85s84hlqsoef6j0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.kitahack_setiau",
+            "certificate_hash": "48f2cf75ddc09224746c798b57e7f96a4c5cb4aa"
+          }
+        },
+        {
+          "client_id": "709834819237-mrboqsbr11mjvk02lp7uq4aihs74j28n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBPKNihzDePEDMV2RC-9Agb1Se7-Cn2u2o"
@@ -20,7 +41,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "709834819237-mrboqsbr11mjvk02lp7uq4aihs74j28n.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "709834819237-c7fj9vr63qo5olf8icivethk33q2mdcf.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.kitahackSetiau"
+              }
+            }
+          ]
         }
       }
     }

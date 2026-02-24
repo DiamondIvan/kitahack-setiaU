@@ -64,6 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '709834819237',
     projectId: 'kitahack-setiau',
     storageBucket: 'kitahack-setiau.firebasestorage.app',
+    androidClientId: '709834819237-70odcahtniv3prj2f5fvj9q231cg06qp.apps.googleusercontent.com',
+    iosClientId: '709834819237-c7fj9vr63qo5olf8icivethk33q2mdcf.apps.googleusercontent.com',
     iosBundleId: 'com.example.kitahackSetiau',
   );
 
@@ -73,6 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '709834819237',
     projectId: 'kitahack-setiau',
     storageBucket: 'kitahack-setiau.firebasestorage.app',
+    androidClientId: '709834819237-70odcahtniv3prj2f5fvj9q231cg06qp.apps.googleusercontent.com',
+    iosClientId: '709834819237-c7fj9vr63qo5olf8icivethk33q2mdcf.apps.googleusercontent.com',
     iosBundleId: 'com.example.kitahackSetiau',
   );
 
@@ -85,4 +89,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'kitahack-setiau.firebasestorage.app',
     measurementId: 'G-CF2QDP3YLN',
   );
+
 }
