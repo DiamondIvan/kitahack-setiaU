@@ -15,6 +15,13 @@ class _HomeScreenState extends State<HomeScreen> {
   final AuthService _authService = AuthService();
   int _currentTabIndex = 0;
 
+  void _redirectToLogin() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed('/login');
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
@@ -27,9 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         if (!snapshot.hasData) {
-          Future.microtask(() {
-            Navigator.of(context).pushReplacementNamed('/login');
-          });
+          _redirectToLogin();
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
@@ -52,9 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 onSelected: (value) async {
                   if (value == 3) {
                     await _authService.signOut();
-                    if (mounted) {
-                      Navigator.of(context).pushReplacementNamed('/login');
-                    }
+                    if (!context.mounted) return;
+                    Navigator.of(context).pushReplacementNamed('/login');
                   }
                 },
               ),
