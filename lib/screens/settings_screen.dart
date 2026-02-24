@@ -169,8 +169,38 @@ class _SettingsTab extends StatelessWidget {
   }
 }
 
-class _ProfileSection extends StatelessWidget {
+class _ProfileSection extends StatefulWidget {
   const _ProfileSection();
+
+  @override
+  State<_ProfileSection> createState() => _ProfileSectionState();
+}
+
+class _ProfileSectionState extends State<_ProfileSection> {
+  late TextEditingController _orgNameController;
+  late TextEditingController _orgTypeController;
+  late TextEditingController _membersController;
+  late TextEditingController _timezoneController;
+
+  @override
+  void initState() {
+    super.initState();
+    _orgNameController =
+        TextEditingController(text: 'University Student Council');
+    _orgTypeController = TextEditingController(text: 'Student Organization');
+    _membersController = TextEditingController(text: '30');
+    _timezoneController =
+        TextEditingController(text: 'Asia/Kuala_Lumpur (GMT+8)');
+  }
+
+  @override
+  void dispose() {
+    _orgNameController.dispose();
+    _orgTypeController.dispose();
+    _membersController.dispose();
+    _timezoneController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -181,19 +211,25 @@ class _ProfileSection extends StatelessWidget {
           title: 'Organization Profile',
           subtitle: "Manage your organization's information and preferences",
           children: [
-            _InfoField(
+            _EditableInfoField(
               label: 'Organization Name',
-              value: 'University Student Council',
+              controller: _orgNameController,
             ),
             const SizedBox(height: 16),
-            _InfoField(
+            _EditableInfoField(
               label: 'Organization Type',
-              value: 'Student Organization',
+              controller: _orgTypeController,
             ),
             const SizedBox(height: 16),
-            _InfoField(label: 'Number of Members', value: '30'),
+            _EditableInfoField(
+              label: 'Number of Members',
+              controller: _membersController,
+            ),
             const SizedBox(height: 16),
-            _InfoField(label: 'Timezone', value: 'Asia/Kuala_Lumpur (GMT+8)'),
+            _EditableInfoField(
+              label: 'Timezone',
+              controller: _timezoneController,
+            ),
           ],
         ),
         const SizedBox(height: 24),
@@ -658,11 +694,11 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
-class _InfoField extends StatelessWidget {
+class _EditableInfoField extends StatelessWidget {
   final String label;
-  final String value;
+  final TextEditingController controller;
 
-  const _InfoField({required this.label, required this.value});
+  const _EditableInfoField({required this.label, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -678,16 +714,26 @@ class _InfoField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          decoration: BoxDecoration(
-            color: Colors.grey[100], // Light grey background
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 14, color: Color(0xFF4A4A4A)),
+        TextFormField(
+          controller: controller,
+          style: const TextStyle(fontSize: 14, color: Color(0xFF4A4A4A)),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey.withAlpha(51)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey.withAlpha(51)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: Color(0xFF6A5AE0)),
+            ),
           ),
         ),
       ],
