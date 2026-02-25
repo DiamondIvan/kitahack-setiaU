@@ -53,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
         }
 
         // 3. User is logged in! Show the new MVP Sidebar layout
+        final user = snapshot.data!;
         return Scaffold(
           backgroundColor: const Color(0xFFF5F6FA),
           body: Row(
@@ -149,33 +150,39 @@ class _HomeScreenState extends State<HomeScreen> {
                           CircleAvatar(
                             radius: 20,
                             backgroundColor: Colors.white,
-                            child: const Text(
-                              'D',
-                              style: TextStyle(
+                            child: Text(
+                              (user.displayName?.isNotEmpty == true
+                                      ? user.displayName![0]
+                                      : user.email?[0] ?? 'U')
+                                  .toUpperCase(),
+                              style: const TextStyle(
                                 color: Color(0xFF6A5AE0),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                           const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'demo@setiau.com',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white,
+                          Flexible(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  user.email ?? 'No email',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                              Text(
-                                'Admin',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white70,
+                                Text(
+                                  user.displayName ?? 'Member',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white70,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),

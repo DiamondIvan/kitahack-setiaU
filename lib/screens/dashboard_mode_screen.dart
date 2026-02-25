@@ -1,5 +1,9 @@
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart' hide Action;
 import 'package:kitahack_setiau/models/firestore_models.dart';
+import 'package:kitahack_setiau/services/firestore_service.dart';
 
 class DashboardModeScreen extends StatefulWidget {
   const DashboardModeScreen({super.key});
@@ -11,49 +15,72 @@ class DashboardModeScreen extends StatefulWidget {
 class _DashboardModeScreenState extends State<DashboardModeScreen> {
   int _selectedTab = 0; // 0: Pending Approvals, 1: Recent Activity, 2: Insights
 
-  // Mock data for Pending Approvals
-  final List<Action> _pendingActions = [
-    Action(
-      id: 'action_001',
-      taskId: 'task_001',
-      meetingId: 'meeting_001',
-      actionType: 'calendar',
-      payload: {
-        'eventName': 'Create Charity Run Event',
-        'date': '2026-03-15',
-        'time': '08:00 AM',
-        'venue': 'Central Park',
-        'details': 'Saturday, March 15, 2026 at 8:00 AM - Venue: Central Park',
-        'timestamp': '2 minutes ago',
-      },
-      status: 'pending',
-      createdAt: DateTime.now(),
-      constraints: [],
-    ),
-  ];
+  final FirestoreService _firestoreService = FirestoreService();
+  List<Action> _pendingActions = [];
+  bool _loadingActions = true;
+  StreamSubscription<List<Action>>? _actionsSubscription;
 
-  void _approveAction(String actionId) {
-    setState(() {
-      _pendingActions.removeWhere((a) => a.id == actionId);
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Action approved and executed!'),
-        backgroundColor: Colors.green,
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _actionsSubscription = _firestoreService
+        .getAllPendingActions('demo_org')
+        .listen(
+          (actions) {
+            if (mounted) {
+              setState(() {
+                _pendingActions = actions;
+                _loadingActions = false;
+              });
+            }
+          },
+          onError: (_) {
+            if (mounted) setState(() => _loadingActions = false);
+          },
+        );
   }
 
-  void _rejectAction(String actionId) {
-    setState(() {
-      _pendingActions.removeWhere((a) => a.id == actionId);
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Action rejected.'),
-        backgroundColor: Colors.red,
-      ),
-    );
+  @override
+  void dispose() {
+    _actionsSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _approveAction(String actionId) async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid ?? 'unknown';
+      await _firestoreService.approveAction(actionId, uid);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Action approved and executed!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Approve failed: $e')));
+    }
+  }
+
+  Future<void> _rejectAction(String actionId) async {
+    try {
+      await _firestoreService.rejectAction(actionId, 'Rejected by user');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Action rejected.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Reject failed: $e')));
+    }
   }
 
   @override
@@ -133,7 +160,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
               const SizedBox(width: 16),
               _buildStatCard(
                 'Pending\nApprovals',
-                '3',
+                '${_pendingActions.length}',
                 Icons.access_time,
                 Colors.amber,
               ),
@@ -158,7 +185,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildTab('Pending Approvals', 3, 0),
+                _buildTab('Pending Approvals', _pendingActions.length, 0),
                 _buildTab('Recent Activity', null, 1),
                 _buildTab('Insights', null, 2),
               ],
@@ -317,6 +344,12 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
   }
 
   Widget _buildPendingApprovals() {
+    if (_loadingActions) {
+      return const Padding(
+        padding: EdgeInsets.all(40),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
     if (_pendingActions.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(40),

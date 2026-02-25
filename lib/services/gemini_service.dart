@@ -129,7 +129,9 @@ Return ONLY valid JSON array, no additional text.
 
     try {
       final content = [Content.text(prompt)];
-      final response = await _model.generateContent(content);
+      final response = await _model
+          .generateContent(content)
+          .timeout(const Duration(seconds: 25));
       final responseText = response.text ?? '[]';
 
       // Parse constraint messages
@@ -160,7 +162,9 @@ Return ONLY the proposed solution as plain text (no JSON, no markdown).
 
     try {
       final content = [Content.text(prompt)];
-      final response = await _model.generateContent(content);
+      final response = await _model
+          .generateContent(content)
+          .timeout(const Duration(seconds: 25));
       return response.text ?? 'Unable to generate alternative solution';
     } catch (e) {
       debugPrint('Error proposing alternative: $e');
@@ -193,7 +197,9 @@ Return ONLY valid JSON object, no additional text.
 
     try {
       final content = [Content.text(prompt)];
-      final response = await _model.generateContent(content);
+      final response = await _model
+          .generateContent(content)
+          .timeout(const Duration(seconds: 25));
       final responseText = response.text ?? '{}';
 
       return _parsePayloadFromJson(responseText);

@@ -46,19 +46,24 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
     if (_isProcessing) return;
 
     if (_isRecording) {
-      // User explicitly stopped — commit any pending segment first
+      // Mark as no longer recording BEFORE calling stop() so that the
+      // onStatus('notListening') and onError callbacks don't try to restart
+      // the listener while we are intentionally stopping.
+      setState(() {
+        _isRecording = false;
+        _isProcessing = true;
+        _processingStage = 'Analyzing…';
+      });
+
       await _speechToText.stop();
+
+      // Commit any pending partial segment to the buffer
       if (_currentSegment.isNotEmpty) {
         _transcriptBuffer = _transcriptBuffer.isEmpty
             ? _currentSegment
             : '$_transcriptBuffer $_currentSegment';
         _currentSegment = '';
       }
-      setState(() {
-        _isRecording = false;
-        _isProcessing = true;
-        _processingStage = 'Analyzing…';
-      });
 
       try {
         await _finalizeMeeting();
@@ -138,15 +143,15 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
       },
       onError: (error) {
         if (!mounted) return;
-        // Restart on recoverable errors (e.g. network blip); only show a
-        // SnackBar for errors that are not simply a "no speech detected" type.
+        // error_client means the underlying Android recognizer client is in a
+        // bad state (e.g. forcibly terminated). Restarting makes it worse —
+        // just ignore it entirely regardless of recording state.
+        if (error.errorMsg == 'error_client') return;
         if (_isRecording && !_isProcessing) {
+          // Other recoverable errors during active recording — restart listener
           _startListening();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Speech error: ${error.errorMsg}')),
-          );
         }
+        // Any other error while stopped/processing is silently ignored
       },
     );
 
@@ -206,6 +211,7 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Gemini error: $e')));
+      return;
     }
 
     if (!mounted) return;

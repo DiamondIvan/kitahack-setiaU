@@ -15,7 +15,7 @@ class FirestoreService {
     for (final task in tasks) {
       batch.set(_db.collection('tasks').doc(task.id), task.toFirestore());
     }
-await batch.commit().timeout(
+    await batch.commit().timeout(
       const Duration(seconds: 30),
       onTimeout: () => throw TimeoutException(
         'Firestore save timed out after 30 seconds. '
@@ -118,6 +118,7 @@ await batch.commit().timeout(
   Stream<List<Action>> getAllPendingActions(String organizationId) {
     return _db
         .collection('actions')
+        .where('organizationId', isEqualTo: organizationId)
         .where('status', isEqualTo: 'pending')
         .snapshots()
         .map((snapshot) {
