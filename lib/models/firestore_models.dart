@@ -66,7 +66,8 @@ class Task {
   final String assignedTo;
   final DateTime dueDate;
   final String priority; // 'high', 'medium', 'low'
-  final String status; // 'pending', 'approved', 'in_progress', 'completed', 'rejected'
+  final String
+  status; // 'pending', 'approved', 'in_progress', 'completed', 'rejected'
   final String category; // 'meeting', 'budget', 'event', 'other'
   final DateTime createdAt;
   final String createdBy;
@@ -178,8 +179,9 @@ class Action {
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
       'approvedBy': approvedBy,
-      'approvalTime':
-          approvalTime != null ? Timestamp.fromDate(approvalTime!) : null,
+      'approvalTime': approvalTime != null
+          ? Timestamp.fromDate(approvalTime!)
+          : null,
       'executionResult': executionResult,
       'constraints': constraints,
     };
@@ -211,7 +213,7 @@ class Budget {
   });
 
   double get remaining => allocated - spent;
-  double get percentageUsed => (spent / allocated) * 100;
+  double get percentageUsed => allocated == 0 ? 0.0 : (spent / allocated) * 100;
 
   factory Budget.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;

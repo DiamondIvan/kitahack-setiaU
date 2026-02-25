@@ -206,6 +206,7 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Gemini error: $e')));
+      return;
     }
 
     if (!mounted) return;
