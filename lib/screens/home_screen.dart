@@ -58,16 +58,21 @@ class _HomeScreenState extends State<HomeScreen> {
           body: Row(
             children: [
               // Sidebar
-              Container(
-                width: 260,
-                height: double.infinity,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF6A5AE0), Color(0xFF8F67E8)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final sidebarWidth = screenWidth > 1200 ? 260.0 : (screenWidth > 800 ? 240.0 : 200.0);
+                  
+                  return Container(
+                    width: sidebarWidth,
+                    height: double.infinity,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF6A5AE0), Color(0xFF8F67E8)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
                 child: Column(
                   children: [
                     Padding(
@@ -149,33 +154,36 @@ class _HomeScreenState extends State<HomeScreen> {
                           CircleAvatar(
                             radius: 20,
                             backgroundColor: Colors.white,
-                            child: const Text(
-                              'D',
-                              style: TextStyle(
+                            child: Text(
+                              snapshot.data!.email?.substring(0, 1).toUpperCase() ?? 'U',
+                              style: const TextStyle(
                                 color: Color(0xFF6A5AE0),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                           const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'demo@setiau.com',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  snapshot.data!.email ?? 'user@example.com',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
-                              Text(
-                                'Admin',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white70,
+                                const Text(
+                                  'User',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white70,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -231,7 +239,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ],
-                ),
+                );
+                },
               ),
               // Main content
               Expanded(

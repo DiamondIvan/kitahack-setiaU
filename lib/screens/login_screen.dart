@@ -102,95 +102,105 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 600;
+    final isMediumScreen = screenSize.width >= 600 && screenSize.width < 900;
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FE),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 60,
-            runSpacing: 40,
-            children: [
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(isSmallScreen ? 16 : 24),
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: isSmallScreen ? 20 : (isMediumScreen ? 40 : 60),
+              runSpacing: isSmallScreen ? 24 : 40,
+              children: [
               // Left Panel: Branding & Features
-              Container(
-                constraints: const BoxConstraints(maxWidth: 480),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // New Logo Style
-                    Row(
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF6A5AE0),
-                            borderRadius: BorderRadius.circular(12),
+              if (!isSmallScreen)
+                Container(
+                  constraints: BoxConstraints(maxWidth: isMediumScreen ? 360 : 480),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // New Logo Style
+                      Row(
+                        children: [
+                          Container(
+                            width: isMediumScreen ? 40 : 48,
+                            height: isMediumScreen ? 40 : 48,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF6A5AE0),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.psychology, // Brain icon approximation
+                              color: Colors.white,
+                              size: isMediumScreen ? 28 : 32,
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.psychology, // Brain icon approximation
-                            color: Colors.white,
-                            size: 32,
+                          const SizedBox(width: 16),
+                          Text(
+                            'SetiaU',
+                            style: TextStyle(
+                              fontSize: isMediumScreen ? 26 : 32,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF6A5AE0),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        const Text(
-                          'SetiaU',
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF6A5AE0),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-                    const Text(
-                      'Your Agentic AI Secretary',
-                      style: TextStyle(
-                        fontSize: 40,
-                        height: 1.1,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1D1E),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Transform discussions into structured execution. Built for student organizations and NGOs.',
-                      style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-                    ),
-                    const SizedBox(height: 40),
-                    // Feature List
-                    _FeatureItem(
-                      icon: Icons.psychology_outlined,
-                      title: 'Real-time Intelligence',
-                      subtitle:
-                          'Live transcript processing with AI-powered task extraction',
-                    ),
-                    const SizedBox(height: 24),
-                    _FeatureItem(
-                      icon: Icons.track_changes_outlined,
-                      title: 'Constraint Detection',
-                      subtitle:
-                          'Validates conflicts before execution with smart proposals',
-                    ),
-                    const SizedBox(height: 24),
-                    _FeatureItem(
-                      icon: Icons.groups_outlined,
-                      title: 'Institutional Memory',
-                      subtitle:
-                          'Maintains organizational context across all sessions',
-                    ),
-                  ],
+                      const SizedBox(height: 32),
+                      Text(
+                        'Your Agentic AI Secretary',
+                        style: TextStyle(
+                          fontSize: isMediumScreen ? 32 : 40,
+                          height: 1.1,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF1A1D1E),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Transform discussions into structured execution. Built for student organizations and NGOs.',
+                        style: TextStyle(
+                      const SizedBox(height: 40),
+                      // Feature List
+                      _FeatureItem(
+                        icon: Icons.psychology_outlined,
+                        title: 'Real-time Intelligence',
+                        subtitle:
+                            'Live transcript processing with AI-powered task extraction',
+                        isCompact: isMediumScreen,
+                      ),
+                      const SizedBox(height: 24),
+                      _FeatureItem(
+                        icon: Icons.track_changes_outlined,
+                        title: 'Constraint Detection',
+                        subtitle:
+                            'Validates conflicts before execution with smart proposals',
+                        isCompact: isMediumScreen,
+                      ),
+                      const SizedBox(height: 24),
+                      _FeatureItem(
+                        icon: Icons.groups_outlined,
+                        title: 'Institutional Memory',
+                        subtitle:
+                            'Maintains organizational context across all sessions',
+                        isCompact: isMediumScreen,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
 
               // Right Panel: Login Card
               Container(
-                constraints: const BoxConstraints(maxWidth: 440),
-                padding: const EdgeInsets.all(40),
+                constraints: BoxConstraints(
+                  maxWidth: isSmallScreen ? screenSize.width - 32 : (isMediumScreen ? 380 : 440),
+                ),
+                padding: EdgeInsets.all(isSmallScreen ? 24 : (isMediumScreen ? 32 : 40)),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
@@ -205,20 +215,43 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Show logo on small screens since branding panel is hidden
+                    if (isSmallScreen) ...[
+                      Center(
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF6A5AE0),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.psychology,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
                     Text(
                       _isLogin ? 'Welcome to SetiaU' : 'Join SetiaU',
-                      style: const TextStyle(
-                        fontSize: 28,
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 24 : 28,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1D1E),
+                        color: const Color(0xFF1A1D1E),
                       ),
+                      textAlign: isSmallScreen ? TextAlign.center : TextAlign.left,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       _isLogin
                           ? 'Sign in to access your agentic secretary dashboard'
                           : 'Create an account to get started',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 14 : 16,
+                        color: Colors.grey[500],
+                      ),
                     ),
                     const SizedBox(height: 32),
 
@@ -314,7 +347,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF6A5AE0),
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 14 : 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -324,8 +357,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         _isLoading
                             ? (_isLogin ? 'Signing in...' : 'Signing up...')
                             : (_isLogin ? 'Sign In' : 'Sign Up'),
-                        style: const TextStyle(
-                          fontSize: 16,
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 15 : 16,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -388,9 +421,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     OutlinedButton.icon(
                       onPressed: _isLoading ? null : _signInWithGoogle,
                       icon: const Icon(Icons.g_mobiledata, size: 28),
-                      label: const Text('Sign in with Google'),
+                      label: Text(
+                        'Sign in with Google',
+                        style: TextStyle(fontSize: isSmallScreen ? 14 : 15),
+                      ),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 16 : 20),
                         side: BorderSide(color: Colors.grey[300]!),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -399,11 +435,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Center(
+                    Center(
                       child: Text(
                         'Aligned with SDG 16 - Strengthening institutional transparency and accountability',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 11 : 12,
+                          color: Colors.grey,
+                        ),
                       ),
                     ),
                   ],
@@ -421,11 +460,13 @@ class _FeatureItem extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
+  final bool isCompact;
 
   const _FeatureItem({
     required this.icon,
     required this.title,
     required this.subtitle,
+    this.isCompact = false,
   });
 
   @override
@@ -434,12 +475,12 @@ class _FeatureItem extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(isCompact ? 10 : 12),
           decoration: BoxDecoration(
             color: const Color(0xFF6A5AE0).withAlpha(26),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: const Color(0xFF6A5AE0), size: 24),
+          child: Icon(icon, color: const Color(0xFF6A5AE0), size: isCompact ? 20 : 24),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -448,14 +489,20 @@ class _FeatureItem extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: isCompact ? 16 : 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A1D1E),
+                  color: const Color(0xFF1A1D1E),
                 ),
               ),
               const SizedBox(height: 4),
-              Text(subtitle, style: TextStyle(color: Colors.grey[600])),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: isCompact ? 14 : 15,
+                ),
+              ),
             ],
           ),
         ),
