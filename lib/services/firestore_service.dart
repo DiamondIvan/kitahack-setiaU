@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kitahack_setiau/models/firestore_models.dart';
 
@@ -13,7 +15,13 @@ class FirestoreService {
     for (final task in tasks) {
       batch.set(_db.collection('tasks').doc(task.id), task.toFirestore());
     }
-    await batch.commit();
+    await batch.commit().timeout(
+      const Duration(seconds: 30),
+      onTimeout: () => throw TimeoutException(
+        'Firestore save timed out after 30 seconds. '
+        'Check your internet connection and try again.',
+      ),
+    );
   }
 
   // Meetings Collection

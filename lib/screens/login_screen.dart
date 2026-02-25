@@ -107,55 +107,97 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 60,
+            runSpacing: 40,
             children: [
-              // Modern Logo / Brand
+              // Left Panel: Branding & Features
               Container(
-                margin: const EdgeInsets.only(bottom: 40),
+                constraints: const BoxConstraints(maxWidth: 480),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ShaderMask(
-                      shaderCallback: (bounds) => const LinearGradient(
-                        colors: [Color(0xFF6A5AE0), Color(0xFF8F67E8)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ).createShader(bounds),
-                      child: const Text(
-                        'SetiaU',
-                        style: TextStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -1.5,
-                          color: Colors.white,
+                    // New Logo Style
+                    Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF6A5AE0),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.psychology, // Brain icon approximation
+                            color: Colors.white,
+                            size: 32,
+                          ),
                         ),
+                        const SizedBox(width: 16),
+                        const Text(
+                          'SetiaU',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF6A5AE0),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                    const Text(
+                      'Your Agentic AI Secretary',
+                      style: TextStyle(
+                        fontSize: 40,
+                        height: 1.1,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1A1D1E),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Your Intelligent Organization Secretary',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF7B7B93),
-                        fontWeight: FontWeight.w500,
-                      ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Transform discussions into structured execution. Built for student organizations and NGOs.',
+                      style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 40),
+                    // Feature List
+                    _FeatureItem(
+                      icon: Icons.psychology_outlined,
+                      title: 'Real-time Intelligence',
+                      subtitle:
+                          'Live transcript processing with AI-powered task extraction',
+                    ),
+                    const SizedBox(height: 24),
+                    _FeatureItem(
+                      icon: Icons.track_changes_outlined,
+                      title: 'Constraint Detection',
+                      subtitle:
+                          'Validates conflicts before execution with smart proposals',
+                    ),
+                    const SizedBox(height: 24),
+                    _FeatureItem(
+                      icon: Icons.groups_outlined,
+                      title: 'Institutional Memory',
+                      subtitle:
+                          'Maintains organizational context across all sessions',
                     ),
                   ],
                 ),
               ),
 
-              // Login Card
+              // Right Panel: Login Card
               Container(
-                constraints: const BoxConstraints(maxWidth: 400),
-                padding: const EdgeInsets.all(32),
+                constraints: const BoxConstraints(maxWidth: 440),
+                padding: const EdgeInsets.all(40),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF6A5AE0).withAlpha(26),
-                      blurRadius: 30,
+                      color: const Color(0xFF6A5AE0).withAlpha(15),
+                      blurRadius: 40,
                       offset: const Offset(0, 10),
                     ),
                   ],
@@ -164,19 +206,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      _isLogin ? 'Welcome Back' : 'Create Account',
+                      _isLogin ? 'Welcome to SetiaU' : 'Join SetiaU',
                       style: const TextStyle(
-                        fontSize: 24,
+                        fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2D2A4A),
+                        color: Color(0xFF1A1D1E),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       _isLogin
-                          ? 'Please sign in to continue'
-                          : 'Please fill in the details below',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                          ? 'Sign in to access your agentic secretary dashboard'
+                          : 'Create an account to get started',
+                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
                     ),
                     const SizedBox(height: 32),
 
@@ -348,12 +390,20 @@ class _LoginScreenState extends State<LoginScreen> {
                       icon: const Icon(Icons.g_mobiledata, size: 28),
                       label: const Text('Sign in with Google'),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: 20),
                         side: BorderSide(color: Colors.grey[300]!),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         foregroundColor: const Color(0xFF2D2A4A),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const Center(
+                      child: Text(
+                        'Aligned with SDG 16 - Strengthening institutional transparency and accountability',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ),
                   ],
@@ -363,6 +413,53 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _FeatureItem extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  const _FeatureItem({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF6A5AE0).withAlpha(26),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, color: const Color(0xFF6A5AE0), size: 24),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF1A1D1E),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(subtitle, style: TextStyle(color: Colors.grey[600])),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
