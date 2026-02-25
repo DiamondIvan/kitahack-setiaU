@@ -128,6 +128,7 @@ class Action {
   final String id;
   final String taskId;
   final String meetingId;
+  final String organizationId;
   final String actionType; // 'calendar', 'email', 'docs', 'sheets', 'other'
   final Map<String, dynamic> payload; // Schema varies by actionType
   final String status; // 'pending', 'approved', 'executed', 'rejected'
@@ -141,6 +142,7 @@ class Action {
     required this.id,
     required this.taskId,
     required this.meetingId,
+    this.organizationId = 'demo_org',
     required this.actionType,
     required this.payload,
     this.status = 'pending',
@@ -157,6 +159,7 @@ class Action {
       id: doc.id,
       taskId: data['taskId'] ?? '',
       meetingId: data['meetingId'] ?? '',
+      organizationId: data['organizationId'] ?? 'demo_org',
       actionType: data['actionType'] ?? 'other',
       payload: data['payload'] ?? {},
       status: data['status'] ?? 'pending',
@@ -174,6 +177,7 @@ class Action {
     return {
       'taskId': taskId,
       'meetingId': meetingId,
+      'organizationId': organizationId,
       'actionType': actionType,
       'payload': payload,
       'status': status,
