@@ -59,186 +59,193 @@ class _HomeScreenState extends State<HomeScreen> {
           body: Row(
             children: [
               // Sidebar
-              Container(
-                width: 260,
-                height: double.infinity,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF6A5AE0), Color(0xFF8F67E8)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 32,
-                        horizontal: 24,
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final sidebarWidth = screenWidth > 1200 ? 260.0 : (screenWidth > 800 ? 240.0 : 200.0);
+                  
+                  return Container(
+                    width: sidebarWidth,
+                    height: double.infinity,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF6A5AE0), Color(0xFF8F67E8)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Icon(
-                              Icons.account_circle,
-                              color: Color(0xFF6A5AE0),
-                              size: 32,
-                            ),
+                    ),
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 32,
+                            horizontal: 24,
                           ),
-                          const SizedBox(width: 16),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'SetiaU',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
                                   color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: const Icon(
+                                  Icons.account_circle,
+                                  color: Color(0xFF6A5AE0),
+                                  size: 32,
                                 ),
                               ),
-                              Text(
-                                'AI Secretary',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white70,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Navigation
-                    _SidebarItem(
-                      icon: Icons.dashboard,
-                      label: 'Dashboard',
-                      selected: _currentTabIndex == 1,
-                      onTap: () => setState(() => _currentTabIndex = 1),
-                    ),
-                    _SidebarItem(
-                      icon: Icons.mic,
-                      label: 'Meeting Mode',
-                      selected: _currentTabIndex == 0,
-                      onTap: () => setState(() => _currentTabIndex = 0),
-                    ),
-                    _SidebarItem(
-                      icon: Icons
-                          .storage, // Using storage as a placeholder for Memory
-                      label: 'Memory',
-                      selected: _currentTabIndex == 3,
-                      onTap: () => setState(() => _currentTabIndex = 3),
-                    ),
-                    _SidebarItem(
-                      icon: Icons.settings,
-                      label: 'Settings',
-                      selected: _currentTabIndex == 2,
-                      onTap: () => setState(() => _currentTabIndex = 2),
-                    ),
-                    const Spacer(),
-                    // User info
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 20,
-                            backgroundColor: Colors.white,
-                            child: Text(
-                              (user.displayName?.isNotEmpty == true
-                                      ? user.displayName![0]
-                                      : user.email?[0] ?? 'U')
-                                  .toUpperCase(),
-                              style: const TextStyle(
-                                color: Color(0xFF6A5AE0),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Flexible(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  user.email ?? 'No email',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                Text(
-                                  user.displayName ?? 'Member',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.white70,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        bottom: 24,
-                        left: 16,
-                        right: 16,
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(26),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white.withAlpha(51)),
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () async {
-                              final navigator = Navigator.of(context);
-                              await _authService.signOut();
-                              if (!mounted) return;
-                              navigator.pushReplacementNamed('/login');
-                            },
-                            borderRadius: BorderRadius.circular(12),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 12,
-                                horizontal: 16,
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                              const SizedBox(width: 16),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: const [
-                                  Icon(
-                                    Icons.logout,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                  SizedBox(width: 8),
                                   Text(
-                                    'Sign Out',
+                                    'SetiaU',
                                     style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
                                       color: Colors.white,
-                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    'AI Secretary',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.white70,
                                     ),
                                   ),
                                 ],
                               ),
+                            ],
+                          ),
+                        ),
+                        // Navigation
+                        _SidebarItem(
+                          icon: Icons.dashboard,
+                          label: 'Dashboard',
+                          selected: _currentTabIndex == 1,
+                          onTap: () => setState(() => _currentTabIndex = 1),
+                        ),
+                        _SidebarItem(
+                          icon: Icons.mic,
+                          label: 'Meeting Mode',
+                          selected: _currentTabIndex == 0,
+                          onTap: () => setState(() => _currentTabIndex = 0),
+                        ),
+                        _SidebarItem(
+                          icon: Icons.storage,
+                          label: 'Memory',
+                          selected: _currentTabIndex == 3,
+                          onTap: () => setState(() => _currentTabIndex = 3),
+                        ),
+                        _SidebarItem(
+                          icon: Icons.settings,
+                          label: 'Settings',
+                          selected: _currentTabIndex == 2,
+                          onTap: () => setState(() => _currentTabIndex = 2),
+                        ),
+                        const Spacer(),
+                        // User info
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 20,
+                                backgroundColor: Colors.white,
+                                child: Text(
+                                  // FIX (Bug 3): Guard against empty string before indexing
+                                  (user.displayName?.isNotEmpty == true
+                                          ? user.displayName![0]
+                                          : (user.email?.isNotEmpty == true ? user.email![0] : 'U'))
+                                      .toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Color(0xFF6A5AE0),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Flexible(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      user.email ?? 'No email',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.white,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      user.displayName ?? 'Member',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: 24,
+                            left: 16,
+                            right: 16,
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(26),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.white.withAlpha(51)),
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () async {
+                                  final navigator = Navigator.of(context);
+                                  await _authService.signOut();
+                                  if (!mounted) return;
+                                  navigator.pushReplacementNamed('/login');
+                                },
+                                borderRadius: BorderRadius.circular(12),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                    horizontal: 16,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: const [
+                                      Icon(
+                                        Icons.logout,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Sign Out',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
               // Main content
               Expanded(
@@ -246,11 +253,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: const Color(0xFFF5F6FA),
                   child: IndexedStack(
                     index: _currentTabIndex,
+                    // FIX (Bug 2): Reordered to match tab indices comment above:
+                    // 0: Meeting Mode, 1: Dashboard, 2: Settings, 3: Memory
                     children: const [
-                      MeetingModeScreen(),
-                      DashboardModeScreen(),
-                      SettingsScreen(),
-                      MemoryScreen(),
+                      MeetingModeScreen(),    // index 0
+                      DashboardModeScreen(),  // index 1
+                      SettingsScreen(),       // index 2
+                      MemoryScreen(),         // index 3
                     ],
                   ),
                 ),
