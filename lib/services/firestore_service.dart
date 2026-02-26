@@ -223,6 +223,18 @@ class FirestoreService {
         .map((doc) => doc.exists ? Organization.fromFirestore(doc) : null);
   }
 
+  // All actions for an organization (client-side filtering)
+  Stream<List<Action>> getActionsForOrganization(String organizationId) {
+    return _db
+        .collection('actions')
+        .where('organizationId', isEqualTo: organizationId)
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Action.fromFirestore(doc)).toList(),
+        );
+  }
+
   // All tasks for an organization (client-side status filtering for counts)
   Stream<List<Task>> getTasksForOrganization(String organizationId) {
     return _db

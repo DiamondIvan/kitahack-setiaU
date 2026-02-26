@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:kitahack_setiau/services/google_calendar_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -62,7 +63,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               icon: Icons.person_outline,
                               isSelected: _selectedTab == 'Profile',
                               compact: isMobile,
-                              onTap: () => setState(() => _selectedTab = 'Profile'),
+                              onTap: () =>
+                                  setState(() => _selectedTab = 'Profile'),
                             ),
                             const SizedBox(width: 8),
                             _SettingsTab(
@@ -70,7 +72,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               icon: Icons.notifications_outlined,
                               isSelected: _selectedTab == 'Notifications',
                               compact: isMobile,
-                              onTap: () => setState(() => _selectedTab = 'Notifications'),
+                              onTap: () => setState(
+                                () => _selectedTab = 'Notifications',
+                              ),
                             ),
                             const SizedBox(width: 8),
                             _SettingsTab(
@@ -78,7 +82,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               icon: Icons.bolt_outlined,
                               isSelected: _selectedTab == 'Integrations',
                               compact: isMobile,
-                              onTap: () => setState(() => _selectedTab = 'Integrations'),
+                              onTap: () =>
+                                  setState(() => _selectedTab = 'Integrations'),
                             ),
                             const SizedBox(width: 8),
                             _SettingsTab(
@@ -86,7 +91,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               icon: Icons.security_outlined,
                               isSelected: _selectedTab == 'Security',
                               compact: isMobile,
-                              onTap: () => setState(() => _selectedTab = 'Security'),
+                              onTap: () =>
+                                  setState(() => _selectedTab = 'Security'),
                             ),
                           ],
                         ),
@@ -204,12 +210,14 @@ class _ProfileSectionState extends State<_ProfileSection> {
   @override
   void initState() {
     super.initState();
-    _orgNameController =
-        TextEditingController(text: 'University Student Council');
+    _orgNameController = TextEditingController(
+      text: 'University Student Council',
+    );
     _orgTypeController = TextEditingController(text: 'Student Organization');
     _membersController = TextEditingController(text: '30');
-    _timezoneController =
-        TextEditingController(text: 'Asia/Kuala_Lumpur (GMT+8)');
+    _timezoneController = TextEditingController(
+      text: 'Asia/Kuala_Lumpur (GMT+8)',
+    );
   }
 
   @override
@@ -385,8 +393,72 @@ class _NotificationsSection extends StatelessWidget {
   }
 }
 
-class _IntegrationsSection extends StatelessWidget {
+class _IntegrationsSection extends StatefulWidget {
   const _IntegrationsSection();
+
+  @override
+  State<_IntegrationsSection> createState() => _IntegrationsSectionState();
+}
+
+class _IntegrationsSectionState extends State<_IntegrationsSection> {
+  bool _calendarConnected = false;
+  bool _calendarLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkCalendarStatus();
+  }
+
+  Future<void> _checkCalendarStatus() async {
+    final connected = await GoogleCalendarService.isSignedIn();
+    if (mounted) {
+      setState(() {
+        _calendarConnected = connected;
+        _calendarLoading = false;
+      });
+    }
+  }
+
+  Future<void> _toggleCalendar() async {
+    setState(() => _calendarLoading = true);
+    try {
+      if (_calendarConnected) {
+        await GoogleCalendarService.signOut();
+        if (mounted) {
+          setState(() {
+            _calendarConnected = false;
+            _calendarLoading = false;
+          });
+        }
+      } else {
+        final account = await GoogleCalendarService.signInForCalendar();
+        if (mounted) {
+          setState(() {
+            _calendarConnected = account != null;
+            _calendarLoading = false;
+          });
+        }
+        if (account != null && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Google Calendar connected!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Google Calendar sign-in was cancelled or failed.'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) setState(() => _calendarLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -445,7 +517,10 @@ class _IntegrationsSection extends StatelessWidget {
                         ),
                         Text(
                           userEmail,
-                          style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 13,
+                          ),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
@@ -475,12 +550,55 @@ class _IntegrationsSection extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            _SwitchRow(
-              title: 'Google Calendar',
-              subtitle: '',
-              icon: Icons.calendar_today,
-              initialValue: true,
-              compact: true,
+            // Google Calendar — real connect/disconnect
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12.0),
+              child: Row(
+                children: [
+                  Icon(Icons.calendar_today, size: 24, color: Colors.grey[600]),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Text(
+                      'Google Calendar',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF1A1D1E),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  _calendarLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : ElevatedButton(
+                          onPressed: _toggleCalendar,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _calendarConnected
+                                ? Colors.red[50]
+                                : const Color(0xFF6A5AE0),
+                            foregroundColor: _calendarConnected
+                                ? Colors.red[700]
+                                : Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                          ),
+                          child: Text(
+                            _calendarConnected ? 'Disconnect' : 'Connect',
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                ],
+              ),
             ),
             _SwitchRow(
               title: 'Gmail',
@@ -690,36 +808,36 @@ class _SectionCard extends StatelessWidget {
         final isNarrow = constraints.maxWidth < 400;
         final cardPadding = isNarrow ? 16.0 : 24.0;
         return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.withAlpha(51)),
-      ),
-      color: Colors.white,
-      child: Padding(
-        padding: EdgeInsets.all(cardPadding),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF1A1D1E),
-              ),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Colors.grey.withAlpha(51)),
+          ),
+          color: Colors.white,
+          child: Padding(
+            padding: EdgeInsets.all(cardPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A1D1E),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  subtitle,
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 24),
+                ...children,
+              ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 24),
-            ...children,
-          ],
-        ),
-      ),
-    );
+          ),
+        );
       },
     );
   }
@@ -751,8 +869,10 @@ class _EditableInfoField extends StatelessWidget {
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 12,
+              horizontal: 16,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: Colors.grey.withAlpha(51)),

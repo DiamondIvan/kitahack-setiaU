@@ -55,7 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
         // 3. User is logged in! Show the new MVP Sidebar (Desktop) or Bottom Nav (Mobile) layout
         final user = snapshot.data!;
-        
+
         return LayoutBuilder(
           builder: (context, constraints) {
             final isDesktop = constraints.maxWidth >= 900;
@@ -102,7 +102,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Icon(
-                                    _isSidebarExpanded ? Icons.menu_open : Icons.menu,
+                                    _isSidebarExpanded
+                                        ? Icons.menu_open
+                                        : Icons.menu,
                                     color: Colors.white,
                                     size: 24,
                                   ),
@@ -153,7 +155,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     child: Text(
                                       (user.displayName?.isNotEmpty == true
                                               ? user.displayName![0]
-                                              : (user.email?.isNotEmpty == true ? user.email![0] : 'U'))
+                                              : (user.email?.isNotEmpty == true
+                                                    ? user.email![0]
+                                                    : 'U'))
                                           .toUpperCase(),
                                       style: const TextStyle(
                                         color: Color(0xFF6A5AE0),
@@ -164,7 +168,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   const SizedBox(width: 12),
                                   Flexible(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           user.email ?? 'No email',
@@ -209,10 +214,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: IndexedStack(
                           index: _currentTabIndex,
                           children: const [
-                            MeetingModeScreen(),    // index 0
-                            DashboardModeScreen(),  // index 1
-                            SettingsScreen(),       // index 2
-                            MemoryScreen(),         // index 3
+                            MeetingModeScreen(), // index 0
+                            DashboardModeScreen(), // index 1
+                            SettingsScreen(), // index 2
+                            MemoryScreen(), // index 3
                           ],
                         ),
                       ),
@@ -226,72 +231,74 @@ class _HomeScreenState extends State<HomeScreen> {
                 backgroundColor: const Color(0xFFF5F6FA),
                 body: Stack(
                   children: [
-                     Positioned.fill(
-                       child: Padding(
-                         padding: const EdgeInsets.only(bottom: 90), // Space for floating bottom bar
-                         child: IndexedStack(
+                    Positioned.fill(
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: 90,
+                        ), // Space for floating bottom bar
+                        child: IndexedStack(
                           index: _currentTabIndex,
                           children: const [
-                            MeetingModeScreen(),    // index 0
-                            DashboardModeScreen(),  // index 1
-                            SettingsScreen(),       // index 2
-                            MemoryScreen(),         // index 3
+                            MeetingModeScreen(), // index 0
+                            DashboardModeScreen(), // index 1
+                            SettingsScreen(), // index 2
+                            MemoryScreen(), // index 3
                           ],
                         ),
-                       ),
-                     ),
-                     Positioned(
-                       left: 16,
-                       right: 16,
-                       bottom: 16,
-                       child: Container(
-                         height: 70,
-                         decoration: BoxDecoration(
-                           color: Colors.white,
-                           boxShadow: [
-                             BoxShadow(
-                               color: Colors.black.withAlpha(20),
-                               blurRadius: 20,
-                               offset: const Offset(0, 10),
-                             ),
-                           ],
-                           borderRadius: BorderRadius.circular(35),
-                         ),
-                         child: Row(
-                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                           children: [
-                             _BottomNavItem(
-                               icon: Icons.dashboard_outlined,
-                               activeIcon: Icons.dashboard,
-                               label: 'Home',
-                               isSelected: _currentTabIndex == 1,
-                               onTap: () => setState(() => _currentTabIndex = 1),
-                             ),
-                             _BottomNavItem(
-                               icon: Icons.mic_none,
-                               activeIcon: Icons.mic,
-                               label: 'Meeting',
-                               isSelected: _currentTabIndex == 0,
-                               onTap: () => setState(() => _currentTabIndex = 0),
-                             ),
-                             _BottomNavItem(
-                               icon: Icons.storage_outlined,
-                               activeIcon: Icons.storage,
-                               label: 'Memory',
-                               isSelected: _currentTabIndex == 3,
-                               onTap: () => setState(() => _currentTabIndex = 3),
-                             ),
-                             _BottomNavItem(
-                               icon: Icons.settings_outlined,
-                               activeIcon: Icons.settings,
-                               label: 'Settings',
-                               isSelected: _currentTabIndex == 2,
-                               onTap: () => setState(() => _currentTabIndex = 2),
-                             ),
-                           ],
-                         ),
-                       ),
-                     ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 16,
+                      right: 16,
+                      bottom: 16,
+                      child: Container(
+                        height: 70,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(20),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                          borderRadius: BorderRadius.circular(35),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _BottomNavItem(
+                              icon: Icons.dashboard_outlined,
+                              activeIcon: Icons.dashboard,
+                              label: 'Home',
+                              isSelected: _currentTabIndex == 1,
+                              onTap: () => setState(() => _currentTabIndex = 1),
+                            ),
+                            _BottomNavItem(
+                              icon: Icons.mic_none,
+                              activeIcon: Icons.mic,
+                              label: 'Meeting',
+                              isSelected: _currentTabIndex == 0,
+                              onTap: () => setState(() => _currentTabIndex = 0),
+                            ),
+                            _BottomNavItem(
+                              icon: Icons.storage_outlined,
+                              activeIcon: Icons.storage,
+                              label: 'Memory',
+                              isSelected: _currentTabIndex == 3,
+                              onTap: () => setState(() => _currentTabIndex = 3),
+                            ),
+                            _BottomNavItem(
+                              icon: Icons.settings_outlined,
+                              activeIcon: Icons.settings,
+                              label: 'Settings',
+                              isSelected: _currentTabIndex == 2,
+                              onTap: () => setState(() => _currentTabIndex = 2),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               );
@@ -377,18 +384,11 @@ class _SidebarSignOutButton extends StatelessWidget {
           },
           borderRadius: BorderRadius.circular(12),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 12,
-              horizontal: 8,
-            ),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
-                  Icons.logout,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                const Icon(Icons.logout, color: Colors.white, size: 20),
                 if (isExpanded) const SizedBox(width: 8),
                 if (isExpanded)
                   const Text(
@@ -407,13 +407,6 @@ class _SidebarSignOutButton extends StatelessWidget {
   }
 }
 
-class _OldSidebarSpacer extends StatelessWidget {
-  // Placeholder to fix previous class dependency if any
-  // Not needed in new structure but kept for safety if referenced elsewhere (unlikely)
-  const _OldSidebarSpacer();
-  @override 
-  Widget build(BuildContext context) {return const SizedBox.shrink();}
-}
 // Sidebar item widget at top level
 class _SidebarItem extends StatelessWidget {
   final IconData icon;
@@ -449,7 +442,9 @@ class _SidebarItem extends StatelessWidget {
                 horizontal: isExpanded ? 20 : 16,
               ),
               decoration: BoxDecoration(
-                color: selected ? Colors.white.withAlpha(38) : Colors.transparent,
+                color: selected
+                    ? Colors.white.withAlpha(38)
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: selected
                     ? [
@@ -462,11 +457,15 @@ class _SidebarItem extends StatelessWidget {
                     : [],
               ),
               child: Row(
-                mainAxisAlignment: isExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
+                mainAxisAlignment: isExpanded
+                    ? MainAxisAlignment.start
+                    : MainAxisAlignment.center,
                 children: [
                   Icon(
                     icon,
-                    color: selected ? Colors.white : Colors.white.withAlpha(179),
+                    color: selected
+                        ? Colors.white
+                        : Colors.white.withAlpha(179),
                     size: 24,
                   ),
                   if (isExpanded) const SizedBox(width: 16),
@@ -478,7 +477,9 @@ class _SidebarItem extends StatelessWidget {
                           color: selected
                               ? Colors.white
                               : Colors.white.withAlpha(179),
-                          fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                          fontWeight: selected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
                           fontSize: 15,
                         ),
                       ),

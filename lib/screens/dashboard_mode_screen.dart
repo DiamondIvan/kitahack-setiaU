@@ -4,6 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart' hide Action;
 import 'package:kitahack_setiau/models/firestore_models.dart';
 import 'package:kitahack_setiau/services/firestore_service.dart';
+import 'package:kitahack_setiau/services/gemini_service.dart';
+import 'package:kitahack_setiau/services/google_calendar_service.dart';
 
 class DashboardModeScreen extends StatefulWidget {
   const DashboardModeScreen({super.key});
@@ -22,10 +24,19 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
 
   int _meetingsThisMonth = 0;
   int _completedTasks = 0;
+  int _totalTasks = 0;
   int _activeMembersCount = 0;
+  List<Meeting> _allMeetings = [];
+  List<Action> _allActions = [];
   StreamSubscription<List<Meeting>>? _meetingsSubscription;
   StreamSubscription<List<Task>>? _tasksSubscription;
   StreamSubscription<Organization?>? _orgSubscription;
+  StreamSubscription<List<Action>>? _allActionsSubscription;
+
+  // Insights
+  List<Map<String, dynamic>>? _insights;
+  bool _insightsLoading = false;
+  String? _insightsError;
 
   @override
   void initState() {
@@ -58,19 +69,29 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                       m.startTime.month == now.month,
                 )
                 .length;
-            setState(() => _meetingsThisMonth = count);
+            setState(() {
+              _meetingsThisMonth = count;
+              _allMeetings = meetings;
+            });
           }
+        });
+
+    _allActionsSubscription = _firestoreService
+        .getActionsForOrganization('demo_org')
+        .listen((actions) {
+          if (mounted) setState(() => _allActions = actions);
         });
 
     _tasksSubscription = _firestoreService
         .getTasksForOrganization('demo_org')
         .listen((tasks) {
           if (mounted) {
-            setState(
-              () => _completedTasks = tasks
+            setState(() {
+              _completedTasks = tasks
                   .where((t) => t.status == 'completed')
-                  .length,
-            );
+                  .length;
+              _totalTasks = tasks.length;
+            });
           }
         });
 
@@ -89,18 +110,90 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
     _meetingsSubscription?.cancel();
     _tasksSubscription?.cancel();
     _orgSubscription?.cancel();
+    _allActionsSubscription?.cancel();
     super.dispose();
+  }
+
+  Future<void> _loadInsights() async {
+    if (_insightsLoading) return;
+    setState(() {
+      _insightsLoading = true;
+      _insightsError = null;
+    });
+    try {
+      final gemini = GeminiService.fromEnv();
+      final executed = _allActions.where((a) => a.status == 'executed').length;
+      final rejected = _allActions.where((a) => a.status == 'rejected').length;
+      final pending = _allActions.where((a) => a.status == 'pending').length;
+      final result = await gemini.generateOrgInsights({
+        'meetingsThisMonth': _meetingsThisMonth,
+        'totalMeetings': _allMeetings.length,
+        'completedTasks': _completedTasks,
+        'totalTasks': _totalTasks,
+        'activeMembersCount': _activeMembersCount,
+        'executedActions': executed,
+        'rejectedActions': rejected,
+        'pendingActions': pending,
+      });
+      if (mounted) {
+        setState(() {
+          _insights = result.isEmpty ? null : result;
+          _insightsError = result.isEmpty
+              ? 'No insights returned. Check your Gemini API key.'
+              : null;
+          _insightsLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _insightsError = 'Failed to load insights: $e';
+          _insightsLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> _approveAction(String actionId) async {
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid ?? 'unknown';
+
+      // Fetch action details before approving so we can execute it
+      final action = await _firestoreService.getAction(actionId);
       await _firestoreService.approveAction(actionId, uid);
+
+      String executionResult = 'Approved';
+
+      if (action != null && action.actionType == 'calendar') {
+        final eventLink = await GoogleCalendarService.createCalendarEvent(
+          action.payload,
+        );
+        if (eventLink != null) {
+          executionResult = 'Calendar event created: $eventLink';
+          await _firestoreService.executeAction(actionId, executionResult);
+        } else {
+          executionResult =
+              'Approved but calendar event creation failed. '
+              'Ensure Google Calendar is connected in Settings.';
+          await _firestoreService.executeAction(actionId, executionResult);
+        }
+      }
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Action approved and executed!'),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: Text(
+            action?.actionType == 'calendar'
+                ? executionResult.startsWith('Calendar event created')
+                      ? 'Meeting added to Google Calendar!'
+                      : 'Approval saved, but calendar sync failed. Check Settings.'
+                : 'Action approved and executed!',
+          ),
+          backgroundColor:
+              action?.actionType == 'calendar' &&
+                  !executionResult.startsWith('Calendar event created')
+              ? Colors.orange
+              : Colors.green,
         ),
       );
     } catch (e) {
@@ -392,7 +485,12 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
   Widget _buildTab(String label, int? count, int index) {
     final isSelected = _selectedTab == index;
     return GestureDetector(
-      onTap: () => setState(() => _selectedTab = index),
+      onTap: () {
+        setState(() => _selectedTab = index);
+        if (index == 2 && _insights == null && !_insightsLoading) {
+          _loadInsights();
+        }
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
@@ -465,7 +563,11 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.check_circle_outline, size: 72, color: Colors.grey[300]),
+              Icon(
+                Icons.check_circle_outline,
+                size: 72,
+                color: Colors.grey[300],
+              ),
               const SizedBox(height: 16),
               const Text(
                 "All clear! No pending approvals.",
@@ -706,33 +808,107 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
     );
   }
 
+  // ---- helpers for Recent Activity ----
+
+  String _timeAgo(DateTime dt) {
+    final diff = DateTime.now().difference(dt);
+    if (diff.inSeconds < 60) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays == 1) return 'Yesterday';
+    if (diff.inDays < 7) return '${diff.inDays} days ago';
+    return '${dt.day}/${dt.month}/${dt.year}';
+  }
+
+  IconData _actionIcon(String type) {
+    switch (type) {
+      case 'calendar':
+        return Icons.calendar_today;
+      case 'email':
+        return Icons.mail_outline;
+      case 'docs':
+        return Icons.description_outlined;
+      case 'sheets':
+        return Icons.table_chart_outlined;
+      default:
+        return Icons.bolt;
+    }
+  }
+
+  Color _actionColor(String type) {
+    switch (type) {
+      case 'calendar':
+        return const Color(0xFF2D9CDB);
+      case 'email':
+        return const Color(0xFFF2994A);
+      case 'docs':
+        return const Color(0xFF6A5AE0);
+      case 'sheets':
+        return const Color(0xFF27AE60);
+      default:
+        return const Color(0xFF6A5AE0);
+    }
+  }
+
+  String _actionTitle(Action action) {
+    final p = action.payload;
+    final name =
+        (p['eventName'] ??
+                p['subject'] ??
+                p['documentName'] ??
+                p['sheetName'] ??
+                '')
+            as String;
+    final label = name.isNotEmpty ? ': $name' : '';
+    switch (action.status) {
+      case 'executed':
+        return '${_capitalize(action.actionType)} action executed$label';
+      case 'approved':
+        return '${_capitalize(action.actionType)} action approved$label';
+      case 'rejected':
+        return '${_capitalize(action.actionType)} action rejected$label';
+      default:
+        return '${_capitalize(action.actionType)} action$label';
+    }
+  }
+
+  String _capitalize(String s) =>
+      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+
   Widget _buildRecentActivity() {
-    final activities = [
-      {
-        'title': 'Meeting minutes generated for AGM Planning',
-        'time': '1 hour ago',
-        'icon': Icons.description,
+    // Build unified activity list from real Firestore data
+    final List<Map<String, dynamic>> activities = [];
+
+    // Non-pending actions
+    for (final action in _allActions) {
+      if (action.status == 'pending') continue;
+      final dt = action.approvalTime ?? action.createdAt;
+      activities.add({
+        'title': _actionTitle(action),
+        'dt': dt,
+        'icon': _actionIcon(action.actionType),
+        'color': action.status == 'rejected'
+            ? const Color(0xFFE02E4C)
+            : _actionColor(action.actionType),
+      });
+    }
+
+    // Completed / ongoing meetings
+    for (final meeting in _allMeetings) {
+      if (meeting.status == 'draft') continue;
+      activities.add({
+        'title': 'Meeting ${meeting.status}: ${meeting.title}',
+        'dt': meeting.startTime,
+        'icon': Icons.mic,
         'color': const Color(0xFF6A5AE0),
-      },
-      {
-        'title': 'Calendar event created: Monthly Review',
-        'time': '3 hours ago',
-        'icon': Icons.calendar_today,
-        'color': const Color(0xFF2D9CDB),
-      },
-      {
-        'title': 'Budget sheet updated: Q1 Expenses',
-        'time': '5 hours ago',
-        'icon': Icons.attach_money,
-        'color': const Color(0xFF27AE60),
-      },
-      {
-        'title': 'New member registration form created',
-        'time': 'Yesterday',
-        'icon': Icons.person_add,
-        'color': const Color(0xFFF2994A),
-      },
-    ];
+      });
+    }
+
+    // Sort newest first, take top 15
+    activities.sort(
+      (a, b) => (b['dt'] as DateTime).compareTo(a['dt'] as DateTime),
+    );
+    final recent = activities.take(15).toList();
 
     return Container(
       padding: const EdgeInsets.all(24), // Reduced padding for smaller screens
@@ -768,157 +944,294 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
             ],
           ),
           const SizedBox(height: 24),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: activities.length,
-            itemBuilder: (context, index) {
-              final activity = activities[index];
-              final isLast = index == activities.length - 1;
+          if (recent.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 32),
+              child: Center(
+                child: Text(
+                  'No activity yet. Approve or reject actions to see them here.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Color(0xFF7B7B93), fontSize: 14),
+                ),
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: recent.length,
+              itemBuilder: (context, index) {
+                final activity = recent[index];
+                final isLast = index == recent.length - 1;
 
-              return IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: (activity['color'] as Color).withAlpha(
-                                128,
-                              ),
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
+                return IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(
                                 color: (activity['color'] as Color).withAlpha(
-                                  51,
+                                  128,
                                 ),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
+                                width: 2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (activity['color'] as Color).withAlpha(
+                                    51,
+                                  ),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              activity['icon'] as IconData,
+                              color: activity['color'] as Color,
+                              size: 16,
+                            ),
+                          ),
+                          if (!isLast)
+                            Expanded(
+                              child: Container(
+                                width: 2,
+                                margin: const EdgeInsets.symmetric(vertical: 4),
+                                color: Colors.grey[200],
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(width: 16), // Reduced gap
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 24.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                activity['title'] as String,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  color: Color(0xFF2D2A4A),
+                                ),
+                                softWrap: true, // Allow text wrapping
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _timeAgo(activity['dt'] as DateTime),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFF7B7B93),
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ],
                           ),
-                          child: Icon(
-                            activity['icon'] as IconData,
-                            color: activity['color'] as Color,
-                            size: 16,
-                          ),
-                        ),
-                        if (!isLast)
-                          Expanded(
-                            child: Container(
-                              width: 2,
-                              margin: const EdgeInsets.symmetric(vertical: 4),
-                              color: Colors.grey[200],
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(width: 16), // Reduced gap
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 24.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              activity['title'] as String,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                                color: Color(0xFF2D2A4A),
-                              ),
-                              softWrap: true, // Allow text wrapping
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              activity['time'] as String,
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Color(0xFF7B7B93),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+                    ],
+                  ),
+                );
+              },
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildInsights(bool isSmallScreen) {
-    final leftColumn = Column(
-      children: [
-        _buildInsightCard(
-          'Meeting Efficiency',
-          'Average time saved per meeting',
-          '-65%',
-          'Admin Tasks',
-          'You\'re saving an average of 45 minutes per meeting',
-          Colors.green,
-          0.65,
-        ),
-        const SizedBox(height: 24),
-        _buildInsightCard(
-          'Budget Tracking',
-          'Current quarter spending',
-          'RM 4,250',
-          'Q1 2026',
-          'RM 1,750 remaining of RM 6,000 budget',
-          Colors.purple,
-          0.70,
-        ),
-      ],
-    );
+  Color _hexToColor(String hex) {
+    final h = hex.replaceFirst('#', '');
+    return Color(int.parse('FF$h', radix: 16));
+  }
 
-    final rightColumn = Column(
-      children: [
-        _buildInsightCard(
-          'Task Completion Rate',
-          'Tasks completed on time',
-          '89%',
-          'This Month',
-          '43 out of 48 tasks completed within deadline',
-          Colors.blue,
-          0.89,
+  Widget _buildInsights(bool isSmallScreen) {
+    // Loading state
+    if (_insightsLoading) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 64),
+        child: const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: Color(0xFF6A5AE0)),
+              SizedBox(height: 16),
+              Text(
+                'Analysing your organisation data…',
+                style: TextStyle(color: Color(0xFF7B7B93), fontSize: 14),
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 24),
-        _buildInsightCard(
-          'Member Engagement',
-          'Active participation rate',
-          '24/30',
-          'Active Members',
-          '80% of members attended last meeting',
-          Colors.blue[900]!,
-          0.80,
+      );
+    }
+
+    // Error state
+    if (_insightsError != null) {
+      return Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
         ),
-      ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+            const SizedBox(height: 12),
+            Text(
+              _insightsError!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFF7B7B93)),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () {
+                setState(() => _insightsError = null);
+                _loadInsights();
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6A5AE0),
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Not yet loaded — show generate button
+    if (_insights == null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF0EBFF),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE5DFFF)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.auto_awesome, color: Color(0xFF6A5AE0), size: 48),
+            const SizedBox(height: 16),
+            const Text(
+              'AI-Powered Insights',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2D2A4A),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Gemini will analyse your real organisation data and generate\npersonalised insights and predictions.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Color(0xFF7B7B93), height: 1.5),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _loadInsights,
+              icon: const Icon(Icons.bolt),
+              label: const Text('Generate Insights'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6A5AE0),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 28,
+                  vertical: 14,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Build grid from real Gemini response
+    final cards = _insights!
+        .map(
+          (insight) => _buildInsightCard(
+            insight['title'] as String? ?? '',
+            insight['subtitle'] as String? ?? '',
+            insight['value'] as String? ?? '',
+            insight['label'] as String? ?? '',
+            insight['footer'] as String? ?? '',
+            _hexToColor(insight['colorHex'] as String? ?? '#6A5AE0'),
+            (insight['progress'] as num? ?? 0.5).toDouble().clamp(0.0, 1.0),
+          ),
+        )
+        .toList();
+
+    // Refresh button row
+    final refreshRow = Align(
+      alignment: Alignment.centerRight,
+      child: TextButton.icon(
+        onPressed: () {
+          setState(() => _insights = null);
+          _loadInsights();
+        },
+        icon: const Icon(Icons.refresh, size: 16),
+        label: const Text('Refresh'),
+        style: TextButton.styleFrom(foregroundColor: const Color(0xFF6A5AE0)),
+      ),
     );
 
     if (isSmallScreen) {
       return Column(
-        children: [leftColumn, const SizedBox(height: 24), rightColumn],
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          refreshRow,
+          const SizedBox(height: 8),
+          for (int i = 0; i < cards.length; i++) ...[
+            cards[i],
+            if (i < cards.length - 1) const SizedBox(height: 24),
+          ],
+        ],
       );
     }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final left = cards.isNotEmpty
+        ? Column(
+            children: [
+              cards[0],
+              if (cards.length > 2) ...[const SizedBox(height: 24), cards[2]],
+            ],
+          )
+        : const SizedBox.shrink();
+
+    final right = cards.length > 1
+        ? Column(
+            children: [
+              cards[1],
+              if (cards.length > 3) ...[const SizedBox(height: 24), cards[3]],
+            ],
+          )
+        : const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(child: leftColumn),
-        const SizedBox(width: 24),
-        Expanded(child: rightColumn),
+        refreshRow,
+        const SizedBox(height: 8),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: left),
+            const SizedBox(width: 24),
+            Expanded(child: right),
+          ],
+        ),
       ],
     );
   }
@@ -980,7 +1293,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
               value: progress,
               minHeight: 8,
               backgroundColor: Colors.grey[200],
-              color: Colors.black, // From screenshot design
+              color: color,
             ),
           ),
           const SizedBox(height: 12),
