@@ -457,17 +457,22 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
       );
     }
     if (_pendingActions.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          children: [
-            Icon(Icons.check_circle_outline, size: 64, color: Colors.grey[300]),
-            const SizedBox(height: 16),
-            const Text(
-              "All clear! No pending approvals.",
-              style: TextStyle(fontSize: 18, color: Color(0xFF7B7B93)),
-            ),
-          ],
+      return ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: MediaQuery.of(context).size.height * 0.5,
+        ),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.check_circle_outline, size: 72, color: Colors.grey[300]),
+              const SizedBox(height: 16),
+              const Text(
+                "All clear! No pending approvals.",
+                style: TextStyle(fontSize: 18, color: Color(0xFF7B7B93)),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -501,67 +506,68 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.amber[50],
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Icon(
-                                      Icons.calendar_today,
-                                      color: Colors.amber[700],
-                                      size: 24,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        action.payload['eventName'] ??
-                                            'Untitled Event',
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF2D2A4A),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'From Meeting: ${action.meetingId}',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Color(0xFF7B7B93),
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
+                                padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color:
-                                      Colors.amber[50], // Soft amber background
-                                  borderRadius: BorderRadius.circular(30),
+                                  color: Colors.amber[50],
+                                  borderRadius: BorderRadius.circular(16),
                                 ),
-                                child: Text(
-                                  action.actionType.toUpperCase(),
-                                  style: TextStyle(
-                                    color: Colors.amber[800],
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 11,
-                                    letterSpacing: 0.5,
-                                  ),
+                                child: Icon(
+                                  Icons.calendar_today,
+                                  color: Colors.amber[700],
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      action.payload['eventName'] ??
+                                          'Untitled Event',
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF2D2A4A),
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'From Meeting: ${action.meetingId}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF7B7B93),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.amber[50],
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                      child: Text(
+                                        action.actionType.toUpperCase(),
+                                        style: TextStyle(
+                                          color: Colors.amber[800],
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 11,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
@@ -584,11 +590,15 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                                       color: Color(0xFF7B7B93),
                                     ),
                                     const SizedBox(width: 8),
-                                    Text(
-                                      '${action.payload['date']} at ${action.payload['time']}',
-                                      style: const TextStyle(
-                                        color: Color(0xFF2D2A4A),
-                                        fontWeight: FontWeight.w500,
+                                    Expanded(
+                                      child: Text(
+                                        '${action.payload['date']} at ${action.payload['time']}',
+                                        style: const TextStyle(
+                                          color: Color(0xFF2D2A4A),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ],
@@ -602,12 +612,16 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                                       color: Color(0xFF7B7B93),
                                     ),
                                     const SizedBox(width: 8),
-                                    Text(
-                                      action.payload['venue'] ??
-                                          'No venue specified',
-                                      style: const TextStyle(
-                                        color: Color(0xFF2D2A4A),
-                                        fontWeight: FontWeight.w500,
+                                    Expanded(
+                                      child: Text(
+                                        action.payload['venue'] ??
+                                            'No venue specified',
+                                        style: const TextStyle(
+                                          color: Color(0xFF2D2A4A),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ],
@@ -625,56 +639,57 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                             ),
                           ),
                           const SizedBox(height: 16),
+                          Text(
+                            'Generated 2 mins ago',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[400],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'Generated 2 mins ago',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[400],
-                                  fontWeight: FontWeight.w500,
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () => _rejectAction(action.id),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFFE02E4C),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    side: const BorderSide(
+                                      color: Color(0xFFE02E4C),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: const Text('Reject'),
                                 ),
                               ),
-                              Row(
-                                children: [
-                                  OutlinedButton(
-                                    onPressed: () => _rejectAction(action.id),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: const Color(0xFFE02E4C),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 20,
-                                        vertical: 16,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      side: const BorderSide(
-                                        color: Color(0xFFE02E4C),
-                                        width: 1.5,
-                                      ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                flex: 2,
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _approveAction(action.id),
+                                  icon: const Icon(Icons.check, size: 18),
+                                  label: const Text('Approve'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF1CAE4B),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 14,
                                     ),
-                                    child: const Text('Reject'),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  ElevatedButton.icon(
-                                    onPressed: () => _approveAction(action.id),
-                                    icon: const Icon(Icons.check, size: 18),
-                                    label: const Text('Approve'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF1CAE4B),
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 24,
-                                        vertical: 16,
-                                      ),
-                                      elevation: 0,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
-                                ],
+                                ),
                               ),
                             ],
                           ),

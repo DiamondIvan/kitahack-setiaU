@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -19,15 +20,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
         return Container(
           color: const Color(0xFFF5F6FA),
-          child: Column(
-            children: [
-              // Header Area
-              Container(
-                padding: EdgeInsets.fromLTRB(padding, padding, padding, 20),
-                alignment: Alignment.centerLeft,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              padding,
+              padding,
+              padding,
+              isMobile ? 100 : 40,
+            ),
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 1000),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Header
                     const Text(
                       'Settings',
                       style: TextStyle(
@@ -43,59 +50,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 24),
                     // Tabs
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _SettingsTab(
-                            label: 'Profile',
-                            icon: Icons.person_outline,
-                            isSelected: _selectedTab == 'Profile',
-                            onTap: () => setState(() => _selectedTab = 'Profile'),
-                          ),
-                          const SizedBox(width: 12),
-                          _SettingsTab(
-                            label: 'Notifications',
-                            icon: Icons.notifications_outlined,
-                            isSelected: _selectedTab == 'Notifications',
-                            onTap: () =>
-                                setState(() => _selectedTab = 'Notifications'),
-                          ),
-                          const SizedBox(width: 12),
-                          _SettingsTab(
-                            label: 'Integrations',
-                            icon: Icons.bolt_outlined,
-                            isSelected: _selectedTab == 'Integrations',
-                            onTap: () =>
-                                setState(() => _selectedTab = 'Integrations'),
-                          ),
-                          const SizedBox(width: 12),
-                          _SettingsTab(
-                            label: 'Security',
-                            icon: Icons.security_outlined,
-                            isSelected: _selectedTab == 'Security',
-                            onTap: () => setState(() => _selectedTab = 'Security'),
-                          ),
-                        ],
+                    SizedBox(
+                      width: double.infinity,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const ClampingScrollPhysics(),
+                        child: Row(
+                          children: [
+                            _SettingsTab(
+                              label: 'Profile',
+                              icon: Icons.person_outline,
+                              isSelected: _selectedTab == 'Profile',
+                              compact: isMobile,
+                              onTap: () => setState(() => _selectedTab = 'Profile'),
+                            ),
+                            const SizedBox(width: 8),
+                            _SettingsTab(
+                              label: 'Notifications',
+                              icon: Icons.notifications_outlined,
+                              isSelected: _selectedTab == 'Notifications',
+                              compact: isMobile,
+                              onTap: () => setState(() => _selectedTab = 'Notifications'),
+                            ),
+                            const SizedBox(width: 8),
+                            _SettingsTab(
+                              label: 'Integrations',
+                              icon: Icons.bolt_outlined,
+                              isSelected: _selectedTab == 'Integrations',
+                              compact: isMobile,
+                              onTap: () => setState(() => _selectedTab = 'Integrations'),
+                            ),
+                            const SizedBox(width: 8),
+                            _SettingsTab(
+                              label: 'Security',
+                              icon: Icons.security_outlined,
+                              isSelected: _selectedTab == 'Security',
+                              compact: isMobile,
+                              onTap: () => setState(() => _selectedTab = 'Security'),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
+                    const SizedBox(height: 24),
+                    // Tab Content
+                    _buildSelectedContent(),
                   ],
                 ),
               ),
-              // Scrollable Content
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(horizontal: padding, vertical: 20),
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 1000),
-                      child: _buildSelectedContent(),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         );
       },
@@ -122,6 +125,7 @@ class _SettingsTab extends StatelessWidget {
   final String label;
   final IconData icon;
   final bool isSelected;
+  final bool compact;
   final VoidCallback onTap;
 
   const _SettingsTab({
@@ -129,6 +133,7 @@ class _SettingsTab extends StatelessWidget {
     required this.icon,
     required this.isSelected,
     required this.onTap,
+    this.compact = false,
   });
 
   @override
@@ -138,7 +143,10 @@ class _SettingsTab extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+        padding: EdgeInsets.symmetric(
+          vertical: 10,
+          horizontal: compact ? 12 : 20,
+        ),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFF6A5AE0) : Colors.white,
           borderRadius: BorderRadius.circular(30),
@@ -161,13 +169,14 @@ class _SettingsTab extends StatelessWidget {
           children: [
             Icon(
               icon,
-              size: 20,
+              size: 18,
               color: isSelected ? Colors.white : Colors.grey[600],
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
+                fontSize: compact ? 12 : 14,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected ? Colors.white : Colors.grey[600],
               ),
@@ -381,6 +390,8 @@ class _IntegrationsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final userEmail = user?.email ?? user?.displayName ?? 'Not signed in';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -389,7 +400,7 @@ class _IntegrationsSection extends StatelessWidget {
           subtitle: 'Connect SetiaU with your Google services',
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey.shade200),
                 borderRadius: BorderRadius.circular(12),
@@ -397,11 +408,11 @@ class _IntegrationsSection extends StatelessWidget {
               child: Row(
                 children: [
                   Container(
-                    width: 40,
-                    height: 40,
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(18),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withAlpha(13),
@@ -414,34 +425,38 @@ class _IntegrationsSection extends StatelessWidget {
                     child: const Text(
                       'G',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.blue,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Google Account',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Google Account',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                         ),
-                      ),
-                      Text(
-                        'demo@setiau.com',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                      ),
-                    ],
+                        Text(
+                          userEmail,
+                          style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                        ),
+                      ],
+                    ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+                      horizontal: 8,
+                      vertical: 4,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.green.withAlpha(26),
@@ -452,7 +467,7 @@ class _IntegrationsSection extends StatelessWidget {
                       style: TextStyle(
                         color: Colors.green,
                         fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                        fontSize: 11,
                       ),
                     ),
                   ),
@@ -670,15 +685,19 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 400;
+        final cardPadding = isNarrow ? 16.0 : 24.0;
+        return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.withAlpha(51)), // Subtle border
+        side: BorderSide(color: Colors.grey.withAlpha(51)),
       ),
       color: Colors.white,
       child: Padding(
-        padding: const EdgeInsets.all(32.0),
+        padding: EdgeInsets.all(cardPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -695,11 +714,13 @@ class _SectionCard extends StatelessWidget {
               subtitle,
               style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             ...children,
           ],
         ),
       ),
+    );
+      },
     );
   }
 }

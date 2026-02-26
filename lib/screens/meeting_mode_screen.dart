@@ -359,7 +359,12 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
         final isMobile = constraints.maxWidth < 900;
         
         return SingleChildScrollView(
-          padding: EdgeInsets.all(isMobile ? 16.0 : 32.0),
+          padding: EdgeInsets.fromLTRB(
+            isMobile ? 16.0 : 32.0,
+            isMobile ? 16.0 : 32.0,
+            isMobile ? 16.0 : 32.0,
+            isMobile ? 100.0 : 32.0, // extra bottom padding for floating nav
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
