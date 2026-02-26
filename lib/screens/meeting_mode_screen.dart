@@ -264,63 +264,82 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(32.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header content
-          Column(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 900;
+        
+        return SingleChildScrollView(
+          padding: EdgeInsets.all(isMobile ? 16.0 : 32.0),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Meeting Mode',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2D2A4A),
-                ),
+              // Header content
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Meeting Mode',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2D2A4A),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Real-time AI-powered meeting intelligence',
+                    style: TextStyle(fontSize: 16, color: Color(0xFF7B7B93)),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'Real-time AI-powered meeting intelligence',
-                style: TextStyle(fontSize: 16, color: Color(0xFF7B7B93)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
+              const SizedBox(height: 32),
 
-          // Main Layout
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Left Column (Main Content)
-              Expanded(
-                flex: 2,
-                child: Column(
+              // Main Layout
+              if (isMobile)
+                Column(
                   children: [
                     _buildAudioRecordingCard(),
                     const SizedBox(height: 24),
                     _buildLiveTranscriptCard(),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 24),
-              // Right Column (Sidebar)
-              Expanded(
-                flex: 1,
-                child: Column(
-                  children: [
+                    const SizedBox(height: 24),
                     _buildExtractedIntelligenceCard(),
                     const SizedBox(height: 24),
                     _buildMeetingStatsCard(),
                   ],
+                )
+              else
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Left Column (Main Content)
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        children: [
+                          _buildAudioRecordingCard(),
+                          const SizedBox(height: 24),
+                          _buildLiveTranscriptCard(),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    // Right Column (Sidebar)
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        children: [
+                          _buildExtractedIntelligenceCard(),
+                          const SizedBox(height: 24),
+                          _buildMeetingStatsCard(),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

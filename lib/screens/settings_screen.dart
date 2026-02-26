@@ -12,83 +12,93 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFFF5F6FA),
-      child: Column(
-        children: [
-          // Header Area
-          Container(
-            padding: const EdgeInsets.fromLTRB(40, 40, 40, 20),
-            alignment: Alignment.centerLeft,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Settings',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1A1D1E),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Manage your SetiaU configuration and preferences',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 24),
-                // Tabs
-                Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+        final padding = isMobile ? 16.0 : 40.0;
+
+        return Container(
+          color: const Color(0xFFF5F6FA),
+          child: Column(
+            children: [
+              // Header Area
+              Container(
+                padding: EdgeInsets.fromLTRB(padding, padding, padding, 20),
+                alignment: Alignment.centerLeft,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SettingsTab(
-                      label: 'Profile',
-                      icon: Icons.person_outline,
-                      isSelected: _selectedTab == 'Profile',
-                      onTap: () => setState(() => _selectedTab = 'Profile'),
+                    const Text(
+                      'Settings',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1A1D1E),
+                      ),
                     ),
-                    const SizedBox(width: 12),
-                    _SettingsTab(
-                      label: 'Notifications',
-                      icon: Icons.notifications_outlined,
-                      isSelected: _selectedTab == 'Notifications',
-                      onTap: () =>
-                          setState(() => _selectedTab = 'Notifications'),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Manage your SetiaU configuration and preferences',
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                     ),
-                    const SizedBox(width: 12),
-                    _SettingsTab(
-                      label: 'Integrations',
-                      icon: Icons.bolt_outlined,
-                      isSelected: _selectedTab == 'Integrations',
-                      onTap: () =>
-                          setState(() => _selectedTab = 'Integrations'),
-                    ),
-                    const SizedBox(width: 12),
-                    _SettingsTab(
-                      label: 'Security',
-                      icon: Icons.security_outlined,
-                      isSelected: _selectedTab == 'Security',
-                      onTap: () => setState(() => _selectedTab = 'Security'),
+                    const SizedBox(height: 24),
+                    // Tabs
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _SettingsTab(
+                            label: 'Profile',
+                            icon: Icons.person_outline,
+                            isSelected: _selectedTab == 'Profile',
+                            onTap: () => setState(() => _selectedTab = 'Profile'),
+                          ),
+                          const SizedBox(width: 12),
+                          _SettingsTab(
+                            label: 'Notifications',
+                            icon: Icons.notifications_outlined,
+                            isSelected: _selectedTab == 'Notifications',
+                            onTap: () =>
+                                setState(() => _selectedTab = 'Notifications'),
+                          ),
+                          const SizedBox(width: 12),
+                          _SettingsTab(
+                            label: 'Integrations',
+                            icon: Icons.bolt_outlined,
+                            isSelected: _selectedTab == 'Integrations',
+                            onTap: () =>
+                                setState(() => _selectedTab = 'Integrations'),
+                          ),
+                          const SizedBox(width: 12),
+                          _SettingsTab(
+                            label: 'Security',
+                            icon: Icons.security_outlined,
+                            isSelected: _selectedTab == 'Security',
+                            onTap: () => setState(() => _selectedTab = 'Security'),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          // Scrollable Content
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-              child: Align(
-                alignment: Alignment.topLeft,
-                child: Container(
-                  constraints: const BoxConstraints(maxWidth: 1000),
-                  child: _buildSelectedContent(),
+              ),
+              // Scrollable Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(horizontal: padding, vertical: 20),
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 1000),
+                      child: _buildSelectedContent(),
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

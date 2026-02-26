@@ -131,122 +131,183 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Title
-          const Text(
-            'Dashboard',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2D2A4A),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Welcome back! Here\'s what\'s happening with your organization.',
-            style: TextStyle(fontSize: 16, color: Color(0xFF7B7B93)),
-          ),
-          const SizedBox(height: 24),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final isSmallScreen = width < 600;
+        final isMediumScreen = width < 1100;
 
-          // Welcome Banner
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0EBFF),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFFE5DFFF)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: const [
-                    Icon(Icons.auto_awesome, color: Color(0xFF6A5AE0)),
-                    SizedBox(width: 8),
-                    Text(
-                      'Welcome to SetiaU!',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF6A5AE0),
-                      ),
+        return SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 80.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title
+              const Text(
+                'Dashboard',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2D2A4A),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Welcome back! Here\'s what\'s happening with your organization.',
+                style: TextStyle(fontSize: 16, color: Color(0xFF7B7B93)),
+              ),
+              const SizedBox(height: 24),
+
+              // Welcome Banner
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0EBFF),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE5DFFF)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: const [
+                        Icon(Icons.auto_awesome, color: Color(0xFF6A5AE0)),
+                        SizedBox(width: 8),
+                        Text(
+                          'Welcome to SetiaU!',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF6A5AE0),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'This is a demonstration of SetiaU\'s agentic AI secretary capabilities. Try the Meeting Mode to see live AI task extraction, or explore Institutional Memory to view organizational history.',
+                      style: TextStyle(color: Color(0xFF6A5AE0), height: 1.5),
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'This is a demonstration of SetiaU\'s agentic AI secretary capabilities. Try the Meeting Mode to see live AI task extraction, or explore Institutional Memory to view organizational history.',
-                  style: TextStyle(color: Color(0xFF6A5AE0), height: 1.5),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
+              ),
+              const SizedBox(height: 24),
 
-          // Stats Cards
-          Row(
-            children: [
-              _buildStatCard(
-                'Meetings This\nMonth',
-                '$_meetingsThisMonth',
-                Icons.calendar_today,
-                Colors.blue,
+              // Stats Cards Grid
+              _buildResponsiveStats(width),
+              const SizedBox(height: 32),
+
+              // Tabs
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildTab('Pending Approvals', _pendingActions.length, 0),
+                      _buildTab('Recent Activity', null, 1),
+                      _buildTab('Insights', null, 2),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(width: 16),
-              _buildStatCard(
-                'Tasks\nCompleted',
-                '$_completedTasks',
-                Icons.check_circle_outline,
-                Colors.green,
-              ),
-              const SizedBox(width: 16),
-              _buildStatCard(
-                'Pending\nApprovals',
-                '${_pendingActions.length}',
-                Icons.access_time,
-                Colors.amber,
-              ),
-              const SizedBox(width: 16),
-              _buildStatCard(
-                'Active\nMembers',
-                '$_activeMembersCount',
-                Icons.people_outline,
-                Colors.purple,
-              ),
+              const SizedBox(height: 24),
+
+              // Tab Content
+              if (_selectedTab == 0) _buildPendingApprovals(),
+              if (_selectedTab == 1) _buildRecentActivity(),
+              if (_selectedTab == 2) _buildInsights(isSmallScreen),
             ],
           ),
-          const SizedBox(height: 32),
-
-          // Tabs
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildTab('Pending Approvals', _pendingActions.length, 0),
-                _buildTab('Recent Activity', null, 1),
-                _buildTab('Insights', null, 2),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Tab Content
-          if (_selectedTab == 0) _buildPendingApprovals(),
-          if (_selectedTab == 1) _buildRecentActivity(),
-          if (_selectedTab == 2) _buildInsights(),
-        ],
-      ),
+        );
+      },
     );
   }
+
+  Widget _buildResponsiveStats(double width) {
+    // 4 cards total
+    final cards = [
+      _buildStatCard(
+        'Meetings This\nMonth',
+        '$_meetingsThisMonth',
+        Icons.calendar_today,
+        Colors.blue,
+      ),
+      _buildStatCard(
+        'Tasks\nCompleted',
+        '$_completedTasks',
+        Icons.check_circle_outline,
+        Colors.green,
+      ),
+      _buildStatCard(
+        'Pending\nApprovals',
+        '${_pendingActions.length}',
+        Icons.access_time,
+        Colors.amber,
+      ),
+      _buildStatCard(
+        'Active\nMembers',
+        '$_activeMembersCount',
+        Icons.people_outline,
+        Colors.purple,
+      ),
+    ];
+
+    if (width < 600) {
+      // 1 column
+      return Column(
+        children: cards
+            .map(
+              (c) => Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: c,
+              ),
+            )
+            .toList(),
+      );
+    } else if (width < 1100) {
+      // 2 columns
+      return Column(
+        children: [
+          Row(
+            children: [
+              Expanded(child: cards[0]),
+              const SizedBox(width: 16),
+              Expanded(child: cards[1]),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: cards[2]),
+              const SizedBox(width: 16),
+              Expanded(child: cards[3]),
+            ],
+          ),
+        ],
+      );
+    } else {
+      // 4 columns
+      return Row(
+        children: [
+          Expanded(child: cards[0]),
+          const SizedBox(width: 16),
+          Expanded(child: cards[1]),
+          const SizedBox(width: 16),
+          Expanded(child: cards[2]),
+          const SizedBox(width: 16),
+          Expanded(child: cards[3]),
+        ],
+      );
+    }
+  }
+
 
   Widget _buildStatCard(
     String title,
@@ -254,77 +315,80 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
     IconData icon,
     Color color,
   ) {
-    return Expanded(
-      child: Container(
-        height: 160,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: color.withAlpha(38),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF7B7B93),
-                      height: 1.2,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: color.withAlpha(26),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(icon, color: color, size: 24),
-                ),
-              ],
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  value,
+    return Container(
+      height: 160,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: color.withAlpha(38),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
                   style: const TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D2A4A),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF7B7B93),
+                    height: 1.2,
                   ),
                 ),
-                const SizedBox(width: 8),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
+              ),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withAlpha(26),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+            ],
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
                   child: Text(
-                    '+5%', // Placeholder for trend
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.green[600],
+                    value,
+                    style: const TextStyle(
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2D2A4A),
                     ),
                   ),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+              const SizedBox(width: 8),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(
+                  '+5%', // Placeholder for trend
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green[600],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -660,7 +724,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
     ];
 
     return Container(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(24), // Reduced padding for smaller screens
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -678,12 +742,14 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Recent Activity',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2D2A4A),
+              const Expanded( // Expanded title to prevent overflow
+                child: Text(
+                  'Recent Activity',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D2A4A),
+                  ),
                 ),
               ),
               TextButton(onPressed: () {}, child: const Text('View All')),
@@ -741,7 +807,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                           ),
                       ],
                     ),
-                    const SizedBox(width: 24),
+                    const SizedBox(width: 16), // Reduced gap
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 24.0),
@@ -755,6 +821,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
                                 fontSize: 16,
                                 color: Color(0xFF2D2A4A),
                               ),
+                              softWrap: true, // Allow text wrapping
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -779,61 +846,71 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
     );
   }
 
-  Widget _buildInsights() {
+  Widget _buildInsights(bool isSmallScreen) {
+    final leftColumn = Column(
+      children: [
+        _buildInsightCard(
+          'Meeting Efficiency',
+          'Average time saved per meeting',
+          '-65%',
+          'Admin Tasks',
+          'You\'re saving an average of 45 minutes per meeting',
+          Colors.green,
+          0.65,
+        ),
+        const SizedBox(height: 24),
+        _buildInsightCard(
+          'Budget Tracking',
+          'Current quarter spending',
+          'RM 4,250',
+          'Q1 2026',
+          'RM 1,750 remaining of RM 6,000 budget',
+          Colors.purple,
+          0.70,
+        ),
+      ],
+    );
+
+    final rightColumn = Column(
+      children: [
+        _buildInsightCard(
+          'Task Completion Rate',
+          'Tasks completed on time',
+          '89%',
+          'This Month',
+          '43 out of 48 tasks completed within deadline',
+          Colors.blue,
+          0.89,
+        ),
+        const SizedBox(height: 24),
+        _buildInsightCard(
+          'Member Engagement',
+          'Active participation rate',
+          '24/30',
+          'Active Members',
+          '80% of members attended last meeting',
+          Colors.blue[900]!,
+          0.80,
+        ),
+      ],
+    );
+
+    if (isSmallScreen) {
+      return Column(
+        children: [
+          leftColumn,
+          const SizedBox(height: 24),
+          rightColumn,
+        ],
+      );
+    }
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            children: [
-              _buildInsightCard(
-                'Meeting Efficiency',
-                'Average time saved per meeting',
-                '-65%',
-                'Admin Tasks',
-                'You\'re saving an average of 45 minutes per meeting',
-                Colors.green,
-                0.65,
-              ),
-              const SizedBox(height: 24),
-              _buildInsightCard(
-                'Budget Tracking',
-                'Current quarter spending',
-                'RM 4,250',
-                'Q1 2026',
-                'RM 1,750 remaining of RM 6,000 budget',
-                Colors.purple,
-                0.70,
-              ),
-            ],
-          ),
-        ),
+        Expanded(child: leftColumn),
         const SizedBox(width: 24),
-        Expanded(
-          child: Column(
-            children: [
-              _buildInsightCard(
-                'Task Completion Rate',
-                'Tasks completed on time',
-                '89%',
-                'This Month',
-                '43 out of 48 tasks completed within deadline',
-                Colors.blue,
-                0.89,
-              ),
-              const SizedBox(height: 24),
-              _buildInsightCard(
-                'Member Engagement',
-                'Active participation rate',
-                '24/30',
-                'Active Members',
-                '80% of members attended last meeting',
-                Colors.blue[900]!,
-                0.80,
-              ),
-            ],
-          ),
-        ),
+        Expanded(child: rightColumn),
       ],
     );
   }
