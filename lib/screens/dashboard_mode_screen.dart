@@ -20,6 +20,13 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
   bool _loadingActions = true;
   StreamSubscription<List<Action>>? _actionsSubscription;
 
+  int _meetingsThisMonth = 0;
+  int _completedTasks = 0;
+  int _activeMembersCount = 0;
+  StreamSubscription<List<Meeting>>? _meetingsSubscription;
+  StreamSubscription<List<Task>>? _tasksSubscription;
+  StreamSubscription<Organization?>? _orgSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -38,11 +45,50 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
             if (mounted) setState(() => _loadingActions = false);
           },
         );
+
+    _meetingsSubscription = _firestoreService
+        .getMeetingsForOrganization('demo_org')
+        .listen((meetings) {
+          if (mounted) {
+            final now = DateTime.now();
+            final count = meetings
+                .where(
+                  (m) =>
+                      m.startTime.year == now.year &&
+                      m.startTime.month == now.month,
+                )
+                .length;
+            setState(() => _meetingsThisMonth = count);
+          }
+        });
+
+    _tasksSubscription = _firestoreService
+        .getTasksForOrganization('demo_org')
+        .listen((tasks) {
+          if (mounted) {
+            setState(
+              () => _completedTasks = tasks
+                  .where((t) => t.status == 'completed')
+                  .length,
+            );
+          }
+        });
+
+    _orgSubscription = _firestoreService
+        .getOrganizationStream('demo_org')
+        .listen((org) {
+          if (mounted) {
+            setState(() => _activeMembersCount = org?.members.length ?? 0);
+          }
+        });
   }
 
   @override
   void dispose() {
     _actionsSubscription?.cancel();
+    _meetingsSubscription?.cancel();
+    _tasksSubscription?.cancel();
+    _orgSubscription?.cancel();
     super.dispose();
   }
 
@@ -146,14 +192,14 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
             children: [
               _buildStatCard(
                 'Meetings This\nMonth',
-                '12',
+                '$_meetingsThisMonth',
                 Icons.calendar_today,
                 Colors.blue,
               ),
               const SizedBox(width: 16),
               _buildStatCard(
                 'Tasks\nCompleted',
-                '48',
+                '$_completedTasks',
                 Icons.check_circle_outline,
                 Colors.green,
               ),
@@ -167,7 +213,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
               const SizedBox(width: 16),
               _buildStatCard(
                 'Active\nMembers',
-                '24',
+                '$_activeMembersCount',
                 Icons.people_outline,
                 Colors.purple,
               ),

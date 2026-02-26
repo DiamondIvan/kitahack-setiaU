@@ -61,6 +61,7 @@ class Meeting {
 class Task {
   final String id;
   final String meetingId;
+  final String organizationId;
   final String title;
   final String description;
   final String assignedTo;
@@ -76,6 +77,7 @@ class Task {
   Task({
     required this.id,
     required this.meetingId,
+    this.organizationId = 'demo_org',
     required this.title,
     required this.description,
     required this.assignedTo,
@@ -93,7 +95,9 @@ class Task {
     return Task(
       id: doc.id,
       meetingId: data['meetingId'] ?? '',
+      organizationId: data['organizationId'] ?? 'demo_org',
       title: data['title'] ?? '',
+
       description: data['description'] ?? '',
       assignedTo: data['assignedTo'] ?? '',
       dueDate: (data['dueDate'] as Timestamp).toDate(),
@@ -109,6 +113,7 @@ class Task {
   Map<String, dynamic> toFirestore() {
     return {
       'meetingId': meetingId,
+      'organizationId': organizationId,
       'title': title,
       'description': description,
       'assignedTo': assignedTo,

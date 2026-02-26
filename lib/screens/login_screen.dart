@@ -36,16 +36,15 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final Future<dynamic> authFuture =
-          _isLogin
-              ? _authService.signInWithEmail(
-                _emailController.text.trim(),
-                _passwordController.text,
-              )
-              : _authService.signUpWithEmail(
-                _emailController.text.trim(),
-                _passwordController.text,
-              );
+      final Future<dynamic> authFuture = _isLogin
+          ? _authService.signInWithEmail(
+              _emailController.text.trim(),
+              _passwordController.text,
+            )
+          : _authService.signUpWithEmail(
+              _emailController.text.trim(),
+              _passwordController.text,
+            );
 
       final result = await authFuture;
 
@@ -105,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.width < 600;
     final isMediumScreen = screenSize.width >= 600 && screenSize.width < 900;
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FE),
       body: SafeArea(
@@ -118,337 +117,357 @@ class _LoginScreenState extends State<LoginScreen> {
               spacing: isSmallScreen ? 20 : (isMediumScreen ? 40 : 60),
               runSpacing: isSmallScreen ? 24 : 40,
               children: [
-              // Left Panel: Branding & Features
-              if (!isSmallScreen)
+                // Left Panel: Branding & Features
+                if (!isSmallScreen)
+                  Container(
+                    constraints: BoxConstraints(
+                      maxWidth: isMediumScreen ? 360 : 480,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // New Logo Style
+                        Row(
+                          children: [
+                            Container(
+                              width: isMediumScreen ? 40 : 48,
+                              height: isMediumScreen ? 40 : 48,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF6A5AE0),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                Icons.psychology, // Brain icon approximation
+                                color: Colors.white,
+                                size: isMediumScreen ? 28 : 32,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              'SetiaU',
+                              style: TextStyle(
+                                fontSize: isMediumScreen ? 26 : 32,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF6A5AE0),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 32),
+                        Text(
+                          'Your Agentic AI Secretary',
+                          style: TextStyle(
+                            fontSize: isMediumScreen ? 32 : 40,
+                            height: 1.1,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF1A1D1E),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Transform discussions into structured execution. Built for student organizations and NGOs.',
+                          style: TextStyle(
+                            fontSize: isMediumScreen ? 14 : 16,
+                            color: Colors.grey[600],
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        // Feature List
+                        _FeatureItem(
+                          icon: Icons.psychology_outlined,
+                          title: 'Real-time Intelligence',
+                          subtitle:
+                              'Live transcript processing with AI-powered task extraction',
+                          isCompact: isMediumScreen,
+                        ),
+                        const SizedBox(height: 24),
+                        _FeatureItem(
+                          icon: Icons.track_changes_outlined,
+                          title: 'Constraint Detection',
+                          subtitle:
+                              'Validates conflicts before execution with smart proposals',
+                          isCompact: isMediumScreen,
+                        ),
+                        const SizedBox(height: 24),
+                        _FeatureItem(
+                          icon: Icons.groups_outlined,
+                          title: 'Institutional Memory',
+                          subtitle:
+                              'Maintains organizational context across all sessions',
+                          isCompact: isMediumScreen,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // Right Panel: Login Card
                 Container(
-                  constraints: BoxConstraints(maxWidth: isMediumScreen ? 360 : 480),
+                  constraints: BoxConstraints(
+                    maxWidth: isSmallScreen
+                        ? screenSize.width - 32
+                        : (isMediumScreen ? 380 : 440),
+                  ),
+                  padding: EdgeInsets.all(
+                    isSmallScreen ? 24 : (isMediumScreen ? 32 : 40),
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF6A5AE0).withAlpha(15),
+                        blurRadius: 40,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // New Logo Style
-                      Row(
-                        children: [
-                          Container(
-                            width: isMediumScreen ? 40 : 48,
-                            height: isMediumScreen ? 40 : 48,
+                      // Show logo on small screens since branding panel is hidden
+                      if (isSmallScreen) ...[
+                        Center(
+                          child: Container(
+                            width: 48,
+                            height: 48,
                             decoration: BoxDecoration(
                               color: const Color(0xFF6A5AE0),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Icon(
-                              Icons.psychology, // Brain icon approximation
+                            child: const Icon(
+                              Icons.psychology,
                               color: Colors.white,
-                              size: isMediumScreen ? 28 : 32,
+                              size: 32,
                             ),
                           ),
-                          const SizedBox(width: 16),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                      Text(
+                        _isLogin ? 'Welcome to SetiaU' : 'Join SetiaU',
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 24 : 28,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF1A1D1E),
+                        ),
+                        textAlign: isSmallScreen
+                            ? TextAlign.center
+                            : TextAlign.left,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _isLogin
+                            ? 'Sign in to access your agentic secretary dashboard'
+                            : 'Create an account to get started',
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 14 : 16,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Email Field
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: InputDecoration(
+                          labelText: 'Email',
+                          prefixIcon: const Icon(
+                            Icons.email_outlined,
+                            color: Color(0xFF6A5AE0),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[200]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF6A5AE0),
+                              width: 2,
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: const Color(0xFFF8F9FE),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Password Field
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: !_isPasswordVisible,
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          prefixIcon: const Icon(
+                            Icons.lock_outline,
+                            color: Color(0xFF6A5AE0),
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _isPasswordVisible
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                              color: Colors.grey[500],
+                            ),
+                            onPressed: () => setState(
+                              () => _isPasswordVisible = !_isPasswordVisible,
+                            ),
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[200]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF6A5AE0),
+                              width: 2,
+                            ),
+                          ),
+                          filled: true,
+                          fillColor: const Color(0xFFF8F9FE),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Forgot Password (Login Only)
+                      if (_isLogin)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {},
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFF6A5AE0),
+                            ),
+                            child: const Text('Forgot Password?'),
+                          ),
+                        ),
+                      const SizedBox(height: 24),
+
+                      // Login / Sign Up Button
+                      ElevatedButton(
+                        onPressed: _isLoading ? null : _handleAuthAction,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF6A5AE0),
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            vertical: isSmallScreen ? 14 : 16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          _isLoading
+                              ? (_isLogin ? 'Signing in...' : 'Signing up...')
+                              : (_isLogin ? 'Sign In' : 'Sign Up'),
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 15 : 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Toggle Login/SignUp
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
                           Text(
-                            'SetiaU',
-                            style: TextStyle(
-                              fontSize: isMediumScreen ? 26 : 32,
-                              fontWeight: FontWeight.bold,
-                              color: const Color(0xFF6A5AE0),
+                            _isLogin
+                                ? "Don't have an account? "
+                                : "Already have an account? ",
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _isLogin = !_isLogin;
+                              });
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFF6A5AE0),
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              _isLogin ? 'Sign Up' : 'Sign In',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 32),
-                      Text(
-                        'Your Agentic AI Secretary',
-                        style: TextStyle(
-                          fontSize: isMediumScreen ? 32 : 40,
-                          height: 1.1,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1A1D1E),
+
+                      const SizedBox(height: 24),
+
+                      // Divider
+                      Row(
+                        children: [
+                          Expanded(child: Divider(color: Colors.grey[200])),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              'OR',
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontWeight: FontWeight.w500,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                          Expanded(child: Divider(color: Colors.grey[200])),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Google Sign In
+                      OutlinedButton.icon(
+                        onPressed: _isLoading ? null : _signInWithGoogle,
+                        icon: const Icon(Icons.g_mobiledata, size: 28),
+                        label: Text(
+                          'Sign in with Google',
+                          style: TextStyle(fontSize: isSmallScreen ? 14 : 15),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            vertical: isSmallScreen ? 16 : 20,
+                          ),
+                          side: BorderSide(color: Colors.grey[300]!),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          foregroundColor: const Color(0xFF2D2A4A),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Transform discussions into structured execution. Built for student organizations and NGOs.',
-                        style: TextStyle(
-                      const SizedBox(height: 40),
-                      // Feature List
-                      _FeatureItem(
-                        icon: Icons.psychology_outlined,
-                        title: 'Real-time Intelligence',
-                        subtitle:
-                            'Live transcript processing with AI-powered task extraction',
-                        isCompact: isMediumScreen,
-                      ),
                       const SizedBox(height: 24),
-                      _FeatureItem(
-                        icon: Icons.track_changes_outlined,
-                        title: 'Constraint Detection',
-                        subtitle:
-                            'Validates conflicts before execution with smart proposals',
-                        isCompact: isMediumScreen,
-                      ),
-                      const SizedBox(height: 24),
-                      _FeatureItem(
-                        icon: Icons.groups_outlined,
-                        title: 'Institutional Memory',
-                        subtitle:
-                            'Maintains organizational context across all sessions',
-                        isCompact: isMediumScreen,
+                      Center(
+                        child: Text(
+                          'Aligned with SDG 16 - Strengthening institutional transparency and accountability',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 11 : 12,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-
-              // Right Panel: Login Card
-              Container(
-                constraints: BoxConstraints(
-                  maxWidth: isSmallScreen ? screenSize.width - 32 : (isMediumScreen ? 380 : 440),
-                ),
-                padding: EdgeInsets.all(isSmallScreen ? 24 : (isMediumScreen ? 32 : 40)),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF6A5AE0).withAlpha(15),
-                      blurRadius: 40,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Show logo on small screens since branding panel is hidden
-                    if (isSmallScreen) ...[
-                      Center(
-                        child: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF6A5AE0),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.psychology,
-                            color: Colors.white,
-                            size: 32,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-                    Text(
-                      _isLogin ? 'Welcome to SetiaU' : 'Join SetiaU',
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 24 : 28,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1A1D1E),
-                      ),
-                      textAlign: isSmallScreen ? TextAlign.center : TextAlign.left,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _isLogin
-                          ? 'Sign in to access your agentic secretary dashboard'
-                          : 'Create an account to get started',
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 14 : 16,
-                        color: Colors.grey[500],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Email Field
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: const Icon(
-                          Icons.email_outlined,
-                          color: Color(0xFF6A5AE0),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[200]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF6A5AE0),
-                            width: 2,
-                          ),
-                        ),
-                        filled: true,
-                        fillColor: const Color(0xFFF8F9FE),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Password Field
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: !_isPasswordVisible,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: const Icon(
-                          Icons.lock_outline,
-                          color: Color(0xFF6A5AE0),
-                        ),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _isPasswordVisible
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                            color: Colors.grey[500],
-                          ),
-                          onPressed: () => setState(
-                            () => _isPasswordVisible = !_isPasswordVisible,
-                          ),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[200]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF6A5AE0),
-                            width: 2,
-                          ),
-                        ),
-                        filled: true,
-                        fillColor: const Color(0xFFF8F9FE),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Forgot Password (Login Only)
-                    if (_isLogin)
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {},
-                          style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFF6A5AE0),
-                          ),
-                          child: const Text('Forgot Password?'),
-                        ),
-                      ),
-                    const SizedBox(height: 24),
-
-                    // Login / Sign Up Button
-                    ElevatedButton(
-                      onPressed: _isLoading ? null : _handleAuthAction,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6A5AE0),
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 14 : 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        _isLoading
-                            ? (_isLogin ? 'Signing in...' : 'Signing up...')
-                            : (_isLogin ? 'Sign In' : 'Sign Up'),
-                        style: TextStyle(
-                          fontSize: isSmallScreen ? 15 : 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Toggle Login/SignUp
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _isLogin
-                              ? "Don't have an account? "
-                              : "Already have an account? ",
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              _isLogin = !_isLogin;
-                            });
-                          },
-                          style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFF6A5AE0),
-                            padding: EdgeInsets.zero,
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          child: Text(
-                            _isLogin ? 'Sign Up' : 'Sign In',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Divider
-                    Row(
-                      children: [
-                        Expanded(child: Divider(color: Colors.grey[200])),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            'OR',
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontWeight: FontWeight.w500,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        Expanded(child: Divider(color: Colors.grey[200])),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Google Sign In
-                    OutlinedButton.icon(
-                      onPressed: _isLoading ? null : _signInWithGoogle,
-                      icon: const Icon(Icons.g_mobiledata, size: 28),
-                      label: Text(
-                        'Sign in with Google',
-                        style: TextStyle(fontSize: isSmallScreen ? 14 : 15),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 16 : 20),
-                        side: BorderSide(color: Colors.grey[300]!),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        foregroundColor: const Color(0xFF2D2A4A),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Center(
-                      child: Text(
-                        'Aligned with SDG 16 - Strengthening institutional transparency and accountability',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: isSmallScreen ? 11 : 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -480,7 +499,11 @@ class _FeatureItem extends StatelessWidget {
             color: const Color(0xFF6A5AE0).withAlpha(26),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: const Color(0xFF6A5AE0), size: isCompact ? 20 : 24),
+          child: Icon(
+            icon,
+            color: const Color(0xFF6A5AE0),
+            size: isCompact ? 20 : 24,
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(
