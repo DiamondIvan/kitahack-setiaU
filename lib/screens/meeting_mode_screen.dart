@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Action;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kitahack_setiau/models/firestore_models.dart';
 import 'package:kitahack_setiau/services/firestore_service.dart';
@@ -177,6 +177,7 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
     if (meetingId == null) return;
 
     final userId = FirebaseAuth.instance.currentUser?.uid;
+    final userEmail = FirebaseAuth.instance.currentUser?.email ?? '';
     if (userId == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -246,11 +247,18 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
 
       await _firestoreService.createMeetingAndTasks(meeting, tasks);
 
+      // Generate Action documents for each task so they appear in the dashboard
+      setState(() => _processingStage = 'Generating actions…');
+      final actions = _buildActionsFromTasks(tasks, meetingId, userEmail);
+      for (final action in actions) {
+        await _firestoreService.createAction(action);
+      }
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Saved transcript and ${tasks.length} task(s) to Firestore.',
+            'Saved transcript, ${tasks.length} task(s) and ${actions.length} pending action(s) to Firestore.',
           ),
         ),
       );
@@ -260,6 +268,88 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('Firestore save error: $e')));
     }
+  }
+
+  /// Build Action documents from extracted tasks using category-to-type mapping.
+  /// These will appear in the dashboard as pending approvals.
+  List<Action> _buildActionsFromTasks(
+    List<Task> tasks,
+    String meetingId,
+    String userEmail,
+  ) {
+    const uuidGen = Uuid();
+    final now = DateTime.now();
+
+    // Map task category to the most appropriate Google Workspace action
+    String actionTypeFor(Task t) {
+      switch (t.category) {
+        case 'event':
+        case 'meeting':
+          return 'calendar';
+        case 'communication':
+          return 'email';
+        case 'budget':
+          return 'sheets';
+        case 'other':
+          return 'docs';
+        default:
+          return 'calendar';
+      }
+    }
+
+    Map<String, dynamic> defaultPayload(Task t, String actionType) {
+      final dateStr = t.dueDate.toIso8601String().split('T')[0];
+      switch (actionType) {
+        case 'calendar':
+          return {
+            'eventName': t.title,
+            'date': dateStr,
+            'startTime': '09:00',
+            'endTime': '10:00',
+            'description': t.description,
+            'attendees': <String>[],
+            'calendarId': userEmail,
+          };
+        case 'email':
+          return {
+            'to': t.assignedTo,
+            'subject': 'Action Required: ${t.title}',
+            'body':
+                '${t.description}\n\nDue: $dateStr\nPriority: ${t.priority}',
+            'cc': <String>[],
+          };
+        case 'sheets':
+          return {
+            'sheetName': 'Budget Tracker',
+            'action': 'append',
+            'values': [t.title, t.assignedTo, dateStr, t.priority, t.status],
+          };
+        case 'docs':
+          return {
+            'documentName': 'Meeting Notes: ${t.title}',
+            'content':
+                '# ${t.title}\n\n${t.description}\n\nAssigned to: ${t.assignedTo}\nDue: $dateStr',
+            'sharing': <String>[],
+          };
+        default:
+          return {};
+      }
+    }
+
+    return tasks.map((task) {
+      final actionType = actionTypeFor(task);
+      return Action(
+        id: uuidGen.v4(),
+        taskId: task.id,
+        meetingId: meetingId,
+        organizationId: 'demo_org',
+        actionType: actionType,
+        payload: defaultPayload(task, actionType),
+        status: 'pending',
+        createdAt: now,
+        constraints: [],
+      );
+    }).toList();
   }
 
   @override
