@@ -16,7 +16,7 @@ class GeminiService {
       apiKey: apiKey,
       generationConfig: GenerationConfig(
         temperature: 0.2,
-        maxOutputTokens: 1024,
+        maxOutputTokens: 8192,
       ),
     );
   }
@@ -40,26 +40,47 @@ class GeminiService {
     String meetingId,
     String userId,
   ) async {
+    final now = DateTime.now();
+    final String todayDate = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    final String currentTime = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
     final prompt =
         '''
 You are SetiaU, an agentic secretary for student organizations and NGOs.
 
+### CRITICAL TIME CONTEXT ###
+- Today's Date: $todayDate
+- Current Time: $currentTime
+- Current Year: ${now.year}
+
+### INSTRUCTIONS ###
+1. Use "$todayDate" as the base reference for any relative dates like "tomorrow", "next week", or "this Friday".
+2. Convert any mentioned time (e.g., "10pm") into a strict 24-hour format (e.g., "22:00").
+3. Ensure the "dueDate" in the JSON output follows the YYYY-MM-DD format using the correct year (${now.year}).
+### MANDATORY RULES ###
+    1. NEVER return "null" for time or date fields.
+    2. Use 24-hour format (HH:mm) for all time fields (e.g., "10pm" becomes "22:00").
+    3. Today's reference date is ${DateTime.now().toIso8601String().split('T')[0]}.
 Analyze the following meeting transcript and extract all actionable tasks, decisions, and action items.
 
 Return at most 10 tasks.
 
 For each task, provide:
 1. Clear title (max 10 words)
-2. Detailed description
+2. Concise description (max 2 sentences)
 3. Assigned person (if mentioned)
 4. Priority level (high/medium/low based on urgency/importance)
-5. Estimated due date (if mentioned, otherwise suggest based on urgency)
+5. Estimated due date AND time (Crucial: MUST be in strict ISO-8601 format with a 'T', e.g., YYYY-MM-DDTHH:mm:00)
 6. Category (meeting/event/budget/communication/other)
 
 Meeting Transcript:
 ---
 $transcript
 ---
+
+### MANDATORY RULES ###
+    1. NEVER return "null" for time or date fields.
+    2. Use 24-hour format (HH:mm) for all time fields (e.g., "10pm" becomes "22:00").
+    3. Today's reference date is ${DateTime.now().toIso8601String().split('T')[0]}.
 
 Return response as a JSON array with this structure:
 [
@@ -68,7 +89,7 @@ Return response as a JSON array with this structure:
     "description": "Full description",
     "assignedTo": "Person name or 'Unassigned'",
     "priority": "high|medium|low",
-    "dueDate": "YYYY-MM-DD",
+    "dueDate": "YYYY-MM-DDTHH:mm:00",
     "category": "meeting|event|budget|communication|other"
   }
 ]
@@ -178,17 +199,26 @@ Return ONLY the proposed solution as plain text (no JSON, no markdown).
     Task task,
     String actionType,
   ) async {
+  final now = DateTime.now();
+  final String todayDate = now.toIso8601String().split('T')[0];
+  final String currentTime = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
     final prompt =
         '''
 You are SetiaU generating structured API payloads for Google Workspace automation.
+
+### TIME CONTEXT
+- Reference Today's Date: $todayDate
+- Current System Time: $currentTime
 
 Task: ${task.title}
 Action Type: $actionType
 Description: ${task.description}
 Assigned To: ${task.assignedTo}
 Due Date: ${task.dueDate.toString().split(' ')[0]}
-
-Generate appropriate payload for $actionType in JSON format:
+### MANDATORY RULES ###
+    1. NEVER return "null" for time or date fields.
+    2. Use 24-hour format (HH:mm) for all time fields (e.g., "10pm" becomes "22:00").
+    3. Today's reference date is ${DateTime.now().toIso8601String().split('T')[0]}.
 
 ${_getPayloadTemplate(actionType)}
 
@@ -328,10 +358,14 @@ Return ONLY valid JSON object, no additional text.
 {
   "eventName": "string",
   "date": "YYYY-MM-DD",
-  "startTime": "HH:MM",
-  "endTime": "HH:MM",
+  "startTime": "HH:mm (24-hour format, e.g., 22:00)", 
+  "endTime": "HH:mm (24-hour format, e.g., 23:00)",
   "description": "string",
   "attendees": ["email1", "email2"]
+  ### MANDATORY RULES ###
+    1. NEVER return "null" for time or date fields.
+    2. Use 24-hour format (HH:mm) for all time fields (e.g., "10pm" becomes "22:00").
+    3. Today's reference date is ${DateTime.now().toIso8601String().split('T')[0]}.
 }
         ''';
       case 'email':
