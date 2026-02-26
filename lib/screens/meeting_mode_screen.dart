@@ -298,14 +298,16 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
     }
 
     Map<String, dynamic> defaultPayload(Task t, String actionType) {
+      final String extractedTime = "${t.dueDate.hour.toString().padLeft(2, '0')}:${t.dueDate.minute.toString().padLeft(2, '0')}";
       final dateStr = t.dueDate.toIso8601String().split('T')[0];
+      final String finalStartTime = (t.dueDate.hour == 0 && t.dueDate.minute == 0) ? '09:00' : extractedTime;
       switch (actionType) {
         case 'calendar':
           return {
             'eventName': t.title,
             'date': dateStr,
-            'startTime': '09:00',
-            'endTime': '10:00',
+            'startTime': finalStartTime,
+            'endTime': _calculateEndTime(finalStartTime),
             'description': t.description,
             'attendees': <String>[],
             'calendarId': userEmail,
@@ -335,6 +337,7 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
           return {};
       }
     }
+    
 
     return tasks.map((task) {
       final actionType = actionTypeFor(task);
@@ -734,5 +737,15 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
         ),
       ],
     );
+  }
+  String _calculateEndTime(String startTime) {
+    try {
+      final parts = startTime.split(':');
+      int hour = int.parse(parts[0]);
+      int nextHour = (hour + 1) % 24;
+      return "${nextHour.toString().padLeft(2, '0')}:${parts[1]}";
+    } catch (e) {
+      return '10:00';
+    }
   }
 }
