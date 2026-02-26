@@ -66,7 +66,8 @@ class Task {
   final String assignedTo;
   final DateTime dueDate;
   final String priority; // 'high', 'medium', 'low'
-  final String status; // 'pending', 'approved', 'in_progress', 'completed', 'rejected'
+  final String
+  status; // 'pending', 'approved', 'in_progress', 'completed', 'rejected'
   final String category; // 'meeting', 'budget', 'event', 'other'
   final DateTime createdAt;
   final String createdBy;
@@ -127,6 +128,7 @@ class Action {
   final String id;
   final String taskId;
   final String meetingId;
+  final String organizationId;
   final String actionType; // 'calendar', 'email', 'docs', 'sheets', 'other'
   final Map<String, dynamic> payload; // Schema varies by actionType
   final String status; // 'pending', 'approved', 'executed', 'rejected'
@@ -140,6 +142,7 @@ class Action {
     required this.id,
     required this.taskId,
     required this.meetingId,
+    this.organizationId = 'demo_org',
     required this.actionType,
     required this.payload,
     this.status = 'pending',
@@ -156,6 +159,7 @@ class Action {
       id: doc.id,
       taskId: data['taskId'] ?? '',
       meetingId: data['meetingId'] ?? '',
+      organizationId: data['organizationId'] ?? 'demo_org',
       actionType: data['actionType'] ?? 'other',
       payload: data['payload'] ?? {},
       status: data['status'] ?? 'pending',
@@ -173,13 +177,15 @@ class Action {
     return {
       'taskId': taskId,
       'meetingId': meetingId,
+      'organizationId': organizationId,
       'actionType': actionType,
       'payload': payload,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
       'approvedBy': approvedBy,
-      'approvalTime':
-          approvalTime != null ? Timestamp.fromDate(approvalTime!) : null,
+      'approvalTime': approvalTime != null
+          ? Timestamp.fromDate(approvalTime!)
+          : null,
       'executionResult': executionResult,
       'constraints': constraints,
     };
@@ -211,7 +217,7 @@ class Budget {
   });
 
   double get remaining => allocated - spent;
-  double get percentageUsed => (spent / allocated) * 100;
+  double get percentageUsed => allocated == 0 ? 0.0 : (spent / allocated) * 100;
 
   factory Budget.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;

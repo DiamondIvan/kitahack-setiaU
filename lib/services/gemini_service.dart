@@ -1,13 +1,24 @@
+import 'dart:convert';
+
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:kitahack_setiau/models/firestore_models.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:uuid/uuid.dart';
 
 class GeminiService {
   late final GenerativeModel _model;
+  static const Uuid _uuid = Uuid();
 
   GeminiService({required String apiKey}) {
-    _model = GenerativeModel(model: 'gemini-2.0-pro', apiKey: apiKey);
+    _model = GenerativeModel(
+      model: 'gemini-2.5-flash',
+      apiKey: apiKey,
+      generationConfig: GenerationConfig(
+        temperature: 0.2,
+        maxOutputTokens: 1024,
+      ),
+    );
   }
 
   /// Factory constructor that loads API key from environment variables
@@ -34,6 +45,8 @@ class GeminiService {
 You are SetiaU, an agentic secretary for student organizations and NGOs.
 
 Analyze the following meeting transcript and extract all actionable tasks, decisions, and action items.
+
+Return at most 10 tasks.
 
 For each task, provide:
 1. Clear title (max 10 words)
@@ -65,7 +78,9 @@ IMPORTANT: Return ONLY valid JSON array, no additional text.
 
     try {
       final content = [Content.text(prompt)];
-      final response = await _model.generateContent(content);
+      final response = await _model
+          .generateContent(content)
+          .timeout(const Duration(seconds: 25));
       final responseText = response.text ?? '[]';
 
       // Parse JSON response
@@ -114,7 +129,9 @@ Return ONLY valid JSON array, no additional text.
 
     try {
       final content = [Content.text(prompt)];
-      final response = await _model.generateContent(content);
+      final response = await _model
+          .generateContent(content)
+          .timeout(const Duration(seconds: 25));
       final responseText = response.text ?? '[]';
 
       // Parse constraint messages
@@ -145,7 +162,9 @@ Return ONLY the proposed solution as plain text (no JSON, no markdown).
 
     try {
       final content = [Content.text(prompt)];
-      final response = await _model.generateContent(content);
+      final response = await _model
+          .generateContent(content)
+          .timeout(const Duration(seconds: 25));
       return response.text ?? 'Unable to generate alternative solution';
     } catch (e) {
       debugPrint('Error proposing alternative: $e');
@@ -178,7 +197,9 @@ Return ONLY valid JSON object, no additional text.
 
     try {
       final content = [Content.text(prompt)];
-      final response = await _model.generateContent(content);
+      final response = await _model
+          .generateContent(content)
+          .timeout(const Duration(seconds: 25));
       final responseText = response.text ?? '{}';
 
       return _parsePayloadFromJson(responseText);
@@ -195,15 +216,48 @@ Return ONLY valid JSON object, no additional text.
     String userId,
   ) {
     try {
-      // Remove markdown code blocks if present
-      // String cleaned = jsonText.replaceAll('```json', '').replaceAll('```', '');
+      final cleaned = _stripMarkdownCodeFences(jsonText);
+      final decoded = jsonDecode(cleaned);
+      if (decoded is! List) return [];
 
-      // Parse JSON - expecting array
-      // For now, return empty list - in production use jsonDecode from dart:convert
-      // final parsed = jsonDecode(cleaned);
-      // return List<Task>.from(parsed.map((item) => Task.fromJson(item)));
+      final now = DateTime.now();
 
-      return [];
+      return decoded
+          .whereType<Map>()
+          .map((raw) => raw.cast<String, dynamic>())
+          .map((map) {
+            final title = (map['title'] ?? '').toString().trim();
+            final description = (map['description'] ?? '').toString().trim();
+            final assignedTo = (map['assignedTo'] ?? 'Unassigned')
+                .toString()
+                .trim();
+            final priority = (map['priority'] ?? 'medium')
+                .toString()
+                .toLowerCase()
+                .trim();
+            final category = (map['category'] ?? 'other')
+                .toString()
+                .toLowerCase()
+                .trim();
+
+            final dueDateRaw = (map['dueDate'] ?? '').toString().trim();
+            final parsedDueDate = DateTime.tryParse(dueDateRaw);
+            final dueDate = parsedDueDate ?? now.add(const Duration(days: 7));
+
+            return Task(
+              id: _uuid.v4(),
+              meetingId: meetingId,
+              title: title.isEmpty ? 'Untitled task' : title,
+              description: description.isEmpty ? 'No description' : description,
+              assignedTo: assignedTo.isEmpty ? 'Unassigned' : assignedTo,
+              dueDate: dueDate,
+              priority: _normalizePriority(priority),
+              category: _normalizeCategory(category),
+              createdAt: now,
+              createdBy: userId,
+            );
+          })
+          .toList();
     } catch (e) {
       debugPrint('Error parsing tasks JSON: $e');
       return [];
@@ -212,14 +266,10 @@ Return ONLY valid JSON object, no additional text.
 
   List<String> _parseConstraintsFromJson(String jsonText) {
     try {
-      // Remove markdown code blocks if present
-      // String cleaned = jsonText.replaceAll('```json', '').replaceAll('```', '');
-
-      // For production, parse using dart:convert
-      // final parsed = jsonDecode(cleaned);
-      // return List<String>.from(parsed);
-
-      return [];
+      final cleaned = _stripMarkdownCodeFences(jsonText);
+      final decoded = jsonDecode(cleaned);
+      if (decoded is! List) return [];
+      return decoded.map((e) => e.toString()).toList();
     } catch (e) {
       debugPrint('Error parsing constraints JSON: $e');
       return [];
@@ -228,17 +278,46 @@ Return ONLY valid JSON object, no additional text.
 
   Map<String, dynamic> _parsePayloadFromJson(String jsonText) {
     try {
-      // Remove markdown code blocks
-      // String cleaned = jsonText.replaceAll('```json', '').replaceAll('```', '');
-
-      // For production, parse using dart:convert
-      // final parsed = jsonDecode(cleaned);
-      // return parsed as Map<String, dynamic>;
-
+      final cleaned = _stripMarkdownCodeFences(jsonText);
+      final decoded = jsonDecode(cleaned);
+      if (decoded is Map) return decoded.cast<String, dynamic>();
       return {};
     } catch (e) {
       debugPrint('Error parsing payload JSON: $e');
       return {};
+    }
+  }
+
+  static String _stripMarkdownCodeFences(String text) {
+    var cleaned = text.trim();
+    if (cleaned.startsWith('```')) {
+      cleaned = cleaned.replaceFirst(RegExp(r'^```[a-zA-Z]*\n?'), '');
+      cleaned = cleaned.replaceFirst(RegExp(r'```\s*$'), '');
+    }
+    return cleaned.trim();
+  }
+
+  static String _normalizePriority(String value) {
+    switch (value) {
+      case 'high':
+      case 'medium':
+      case 'low':
+        return value;
+      default:
+        return 'medium';
+    }
+  }
+
+  static String _normalizeCategory(String value) {
+    switch (value) {
+      case 'meeting':
+      case 'budget':
+      case 'event':
+      case 'communication':
+      case 'other':
+        return value;
+      default:
+        return 'other';
     }
   }
 

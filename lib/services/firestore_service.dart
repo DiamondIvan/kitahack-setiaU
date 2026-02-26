@@ -1,8 +1,28 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kitahack_setiau/models/firestore_models.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  Future<void> createMeetingAndTasks(Meeting meeting, List<Task> tasks) async {
+    final batch = _db.batch();
+    batch.set(
+      _db.collection('meetings').doc(meeting.id),
+      meeting.toFirestore(),
+    );
+    for (final task in tasks) {
+      batch.set(_db.collection('tasks').doc(task.id), task.toFirestore());
+    }
+    await batch.commit().timeout(
+      const Duration(seconds: 30),
+      onTimeout: () => throw TimeoutException(
+        'Firestore save timed out after 30 seconds. '
+        'Check your internet connection and try again.',
+      ),
+    );
+  }
 
   // Meetings Collection
   Future<void> createMeeting(Meeting meeting) async {
@@ -20,11 +40,16 @@ class FirestoreService {
         .where('organizationId', isEqualTo: organizationId)
         .orderBy('startTime', descending: true)
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => Meeting.fromFirestore(doc)).toList());
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Meeting.fromFirestore(doc)).toList(),
+        );
   }
 
-  Future<void> updateMeeting(String meetingId, Map<String, dynamic> data) async {
+  Future<void> updateMeeting(
+    String meetingId,
+    Map<String, dynamic> data,
+  ) async {
     await _db.collection('meetings').doc(meetingId).update(data);
   }
 
@@ -44,8 +69,10 @@ class FirestoreService {
         .where('meetingId', isEqualTo: meetingId)
         .orderBy('dueDate')
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => Task.fromFirestore(doc)).toList());
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Task.fromFirestore(doc)).toList(),
+        );
   }
 
   Stream<List<Task>> getPendingTasksForUser(String userId) {
@@ -56,8 +83,10 @@ class FirestoreService {
         .orderBy('status')
         .orderBy('dueDate')
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => Task.fromFirestore(doc)).toList());
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Task.fromFirestore(doc)).toList(),
+        );
   }
 
   Future<void> updateTask(String taskId, Map<String, dynamic> data) async {
@@ -80,20 +109,21 @@ class FirestoreService {
         .where('meetingId', isEqualTo: meetingId)
         .where('status', isEqualTo: 'pending')
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => Action.fromFirestore(doc)).toList());
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Action.fromFirestore(doc)).toList(),
+        );
   }
 
   Stream<List<Action>> getAllPendingActions(String organizationId) {
     return _db
         .collection('actions')
+        .where('organizationId', isEqualTo: organizationId)
         .where('status', isEqualTo: 'pending')
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => Action.fromFirestore(doc))
-          .toList();
-    });
+          return snapshot.docs.map((doc) => Action.fromFirestore(doc)).toList();
+        });
   }
 
   Future<void> approveAction(String actionId, String approvedBy) async {
@@ -133,8 +163,10 @@ class FirestoreService {
         .collection('budgets')
         .where('organizationId', isEqualTo: organizationId)
         .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => Budget.fromFirestore(doc)).toList());
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Budget.fromFirestore(doc)).toList(),
+        );
   }
 
   Future<void> updateBudget(String budgetId, Map<String, dynamic> data) async {
@@ -159,18 +191,24 @@ class FirestoreService {
         .collection('organizations')
         .where('members', arrayContains: userId)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Organization.fromFirestore(doc))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Organization.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   Future<void> updateOrganization(
-      String organizationId, Map<String, dynamic> data) async {
+    String organizationId,
+    Map<String, dynamic> data,
+  ) async {
     await _db.collection('organizations').doc(organizationId).update(data);
   }
 
   Future<void> addMemberToOrganization(
-      String organizationId, String userId) async {
+    String organizationId,
+    String userId,
+  ) async {
     await _db.collection('organizations').doc(organizationId).update({
       'members': FieldValue.arrayUnion([userId]),
     });
