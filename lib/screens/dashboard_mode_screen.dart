@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart' hide Action;
 import 'package:kitahack_setiau/models/firestore_models.dart';
 import 'package:kitahack_setiau/services/firestore_service.dart';
+import 'package:kitahack_setiau/services/google_calendar_service.dart';
 
 class DashboardModeScreen extends StatefulWidget {
   const DashboardModeScreen({super.key});
@@ -95,12 +96,43 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
   Future<void> _approveAction(String actionId) async {
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid ?? 'unknown';
+
+      // Fetch action details before approving so we can execute it
+      final action = await _firestoreService.getAction(actionId);
       await _firestoreService.approveAction(actionId, uid);
+
+      String executionResult = 'Approved';
+
+      if (action != null && action.actionType == 'calendar') {
+        final eventLink = await GoogleCalendarService.createCalendarEvent(
+          action.payload,
+        );
+        if (eventLink != null) {
+          executionResult = 'Calendar event created: $eventLink';
+          await _firestoreService.executeAction(actionId, executionResult);
+        } else {
+          executionResult =
+              'Approved but calendar event creation failed. '
+              'Ensure Google Calendar is connected in Settings.';
+          await _firestoreService.executeAction(actionId, executionResult);
+        }
+      }
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Action approved and executed!'),
-          backgroundColor: Colors.green,
+        SnackBar(
+          content: Text(
+            action?.actionType == 'calendar'
+                ? executionResult.startsWith('Calendar event created')
+                      ? 'Meeting added to Google Calendar!'
+                      : 'Approval saved, but calendar sync failed. Check Settings.'
+                : 'Action approved and executed!',
+          ),
+          backgroundColor:
+              action?.actionType == 'calendar' &&
+                  !executionResult.startsWith('Calendar event created')
+              ? Colors.orange
+              : Colors.green,
         ),
       );
     } catch (e) {
@@ -465,7 +497,11 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.check_circle_outline, size: 72, color: Colors.grey[300]),
+              Icon(
+                Icons.check_circle_outline,
+                size: 72,
+                color: Colors.grey[300],
+              ),
               const SizedBox(height: 16),
               const Text(
                 "All clear! No pending approvals.",
