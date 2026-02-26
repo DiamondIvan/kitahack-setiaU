@@ -135,7 +135,6 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         final isSmallScreen = width < 600;
-        final isMediumScreen = width < 1100;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 80.0),
@@ -264,10 +263,8 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
       return Column(
         children: cards
             .map(
-              (c) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: c,
-              ),
+              (c) =>
+                  Padding(padding: const EdgeInsets.only(bottom: 16), child: c),
             )
             .toList(),
       );
@@ -307,7 +304,6 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
       );
     }
   }
-
 
   Widget _buildStatCard(
     String title,
@@ -742,7 +738,8 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Expanded( // Expanded title to prevent overflow
+              const Expanded(
+                // Expanded title to prevent overflow
                 child: Text(
                   'Recent Activity',
                   style: TextStyle(
@@ -897,11 +894,7 @@ class _DashboardModeScreenState extends State<DashboardModeScreen> {
 
     if (isSmallScreen) {
       return Column(
-        children: [
-          leftColumn,
-          const SizedBox(height: 24),
-          rightColumn,
-        ],
+        children: [leftColumn, const SizedBox(height: 24), rightColumn],
       );
     }
 
