@@ -41,162 +41,250 @@ class _MemoryScreenState extends State<MemoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(32.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          const Text(
-            'Institutional Memory',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2D2A4A),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Complete organizational history with searchable records and contextual insights',
-            style: TextStyle(fontSize: 16, color: Color(0xFF7B7B93)),
-          ),
-          const SizedBox(height: 32),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 900;
+        final isSmallMobile = constraints.maxWidth < 600;
 
-          // Stats Row
-          Row(
-            children: [
-              _buildStatCard(
-                'Total\nMeetings',
-                '3',
-                Icons.calendar_today,
-                const Color(0xFF6A5AE0),
-              ),
-              const SizedBox(width: 16),
-              _buildStatCard(
-                'Decisions\nMade',
-                '2',
-                Icons.description_outlined,
-                const Color(0xFF6A5AE0),
-              ),
-              const SizedBox(width: 16),
-              _buildStatCard(
-                'Budget\nEntries',
-                '2',
-                Icons.attach_money,
-                const Color(0xFF6A5AE0),
-              ),
-              const SizedBox(width: 16),
-              _buildStatCard(
-                'Active\nTasks',
-                '1',
-                Icons.people_outline,
-                const Color(0xFF6A5AE0),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-
-          // Search and Filter Bar
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors
-                        .white, // Colors.grey[100] in screenshot looks light
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.transparent,
-                    ), // No visible border in screenshot
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      hintText: 'Search meetings, decisions, budgets, tasks...',
-                      icon: Icon(Icons.search, color: Colors.grey),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              _buildFilterButton(
-                'All',
-                'All',
-                isActive: _selectedFilter == 'All',
-              ),
-              const SizedBox(width: 8),
-              _buildFilterButton(
-                'Meetings',
-                'Meetings',
-                icon: Icons.calendar_today,
-                isActive: _selectedFilter == 'Meetings',
-              ),
-              const SizedBox(width: 8),
-              _buildFilterButton(
-                'Decisions',
-                'Decisions',
-                icon: Icons.description_outlined,
-                isActive: _selectedFilter == 'Decisions',
-              ),
-              const SizedBox(width: 8),
-              _buildFilterButton(
-                'Budget',
-                'Budget',
-                icon: Icons.attach_money,
-                isActive: _selectedFilter == 'Budget',
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-
-          // Main Content: Timeline + Right Sidebar
-          Row(
+        return SingleChildScrollView(
+          padding: EdgeInsets.all(isMobile ? 16.0 : 32.0),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Left: Timeline
-              Expanded(
-                flex: 2,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Timeline',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2D2A4A),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      '8 entries found',
-                      style: TextStyle(color: Color(0xFF7B7B93)),
-                    ),
-                    const SizedBox(height: 24),
-                    ..._memoryEntries.map(
-                      (entry) => _buildTimelineEntry(entry),
-                    ),
-                  ],
+              // Header
+              const Text(
+                'Institutional Memory',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2D2A4A),
                 ),
               ),
-              const SizedBox(width: 32),
-              // Right: Insights & Analytics
-              Expanded(
-                flex: 1,
-                child: Column(
-                  children: [
-                    _buildQuickInsightsCard(),
-                    const SizedBox(height: 24),
-                    _buildMemoryAnalyticsCard(),
-                  ],
-                ),
+              const SizedBox(height: 8),
+              const Text(
+                'Complete organizational history with searchable records and contextual insights',
+                style: TextStyle(fontSize: 16, color: Color(0xFF7B7B93)),
               ),
+              const SizedBox(height: 32),
+
+              // Stats Row
+              isSmallMobile
+                  ? Column(
+                      children: [
+                        _buildStatCard(
+                          'Total\nMeetings',
+                          '3',
+                          Icons.calendar_today,
+                          const Color(0xFF6A5AE0),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildStatCard(
+                          'Decisions\nMade',
+                          '2',
+                          Icons.description_outlined,
+                          const Color(0xFF6A5AE0),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildStatCard(
+                          'Budget\nEntries',
+                          '2',
+                          Icons.attach_money,
+                          const Color(0xFF6A5AE0),
+                        ),
+                        const SizedBox(height: 16),
+                        _buildStatCard(
+                          'Active\nTasks',
+                          '1',
+                          Icons.people_outline,
+                          const Color(0xFF6A5AE0),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Expanded(child: _buildStatCard(
+                          'Total\nMeetings',
+                          '3',
+                          Icons.calendar_today,
+                          const Color(0xFF6A5AE0),
+                        )),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildStatCard(
+                          'Decisions\nMade',
+                          '2',
+                          Icons.description_outlined,
+                          const Color(0xFF6A5AE0),
+                        )),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildStatCard(
+                          'Budget\nEntries',
+                          '2',
+                          Icons.attach_money,
+                          const Color(0xFF6A5AE0),
+                        )),
+                        const SizedBox(width: 16),
+                        Expanded(child: _buildStatCard(
+                          'Active\nTasks',
+                          '1',
+                          Icons.people_outline,
+                          const Color(0xFF6A5AE0),
+                        )),
+                      ],
+                    ),
+              const SizedBox(height: 32),
+
+              // Search and Filter Bar
+              isMobile
+                  ? Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.transparent),
+                          ),
+                          child: TextField(
+                            controller: _searchController,
+                            decoration: const InputDecoration(
+                              border: InputBorder.none,
+                              hintText: 'Search...',
+                              icon: Icon(Icons.search, color: Colors.grey),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              _buildFilterButton('All', 'All', isActive: _selectedFilter == 'All'),
+                              const SizedBox(width: 8),
+                              _buildFilterButton('Meetings', 'Meetings', icon: Icons.calendar_today, isActive: _selectedFilter == 'Meetings'),
+                              const SizedBox(width: 8),
+                              _buildFilterButton('Decisions', 'Decisions', icon: Icons.description_outlined, isActive: _selectedFilter == 'Decisions'),
+                              const SizedBox(width: 8),
+                              _buildFilterButton('Budget', 'Budget', icon: Icons.attach_money, isActive: _selectedFilter == 'Budget'),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.transparent),
+                            ),
+                            child: TextField(
+                              controller: _searchController,
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                hintText: 'Search meetings, decisions, budgets, tasks...',
+                                icon: Icon(Icons.search, color: Colors.grey),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        _buildFilterButton('All', 'All', isActive: _selectedFilter == 'All'),
+                        const SizedBox(width: 8),
+                        _buildFilterButton('Meetings', 'Meetings', icon: Icons.calendar_today, isActive: _selectedFilter == 'Meetings'),
+                        const SizedBox(width: 8),
+                        _buildFilterButton('Decisions', 'Decisions', icon: Icons.description_outlined, isActive: _selectedFilter == 'Decisions'),
+                        const SizedBox(width: 8),
+                        _buildFilterButton('Budget', 'Budget', icon: Icons.attach_money, isActive: _selectedFilter == 'Budget'),
+                      ],
+                    ),
+              const SizedBox(height: 32),
+
+              // Main Content: Timeline + Right Sidebar
+              isMobile
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Insights first on mobile? Usually better to show relevant info first. keeping timeline.
+                        // Actually, maybe show quick insights first? Let's stick to Timeline then Sidebar below like Meeting Mode.
+                        
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Timeline',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2D2A4A),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              '8 entries found',
+                              style: TextStyle(color: Color(0xFF7B7B93)),
+                            ),
+                            const SizedBox(height: 24),
+                            ..._memoryEntries.map(
+                              (entry) => _buildTimelineEntry(entry),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 32),
+                        _buildQuickInsightsCard(),
+                        const SizedBox(height: 24),
+                        _buildMemoryAnalyticsCard(),
+                      ],
+                    )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Left: Timeline
+                        Expanded(
+                          flex: 2,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Timeline',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2D2A4A),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                '8 entries found',
+                                style: TextStyle(color: Color(0xFF7B7B93)),
+                              ),
+                              const SizedBox(height: 24),
+                              ..._memoryEntries.map(
+                                (entry) => _buildTimelineEntry(entry),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 32),
+                        // Right: Insights & Analytics
+                        Expanded(
+                          flex: 1,
+                          child: Column(
+                            children: [
+                              _buildQuickInsightsCard(),
+                              const SizedBox(height: 24),
+                              _buildMemoryAnalyticsCard(),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -206,57 +294,64 @@ class _MemoryScreenState extends State<MemoryScreen> {
     IconData icon,
     Color color,
   ) {
-    return Expanded(
-      child: Container(
-        height: 140,
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(13),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
+    return Container(
+      width: double.infinity,
+      height: 120, // Reduced height for mobile vertical list
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(13),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     color: Color(0xFF7B7B93),
                     height: 1.2,
                   ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2D2A4A),
-                  ),
-                ),
-              ],
-            ),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withAlpha(26),
-                borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: color, size: 24),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withAlpha(26),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+            ],
+          ),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2D2A4A),
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -375,14 +470,19 @@ class _MemoryScreenState extends State<MemoryScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        entry['title'],
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2D2A4A),
+                      Expanded(
+                        child: Text(
+                          entry['title'],
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2D2A4A),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
