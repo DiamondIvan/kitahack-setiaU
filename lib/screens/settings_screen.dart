@@ -412,11 +412,12 @@ class _IntegrationsSectionState extends State<_IntegrationsSection> {
 
   Future<void> _checkCalendarStatus() async {
     final connected = await GoogleCalendarService.isSignedIn();
-    if (mounted)
+    if (mounted) {
       setState(() {
         _calendarConnected = connected;
         _calendarLoading = false;
       });
+    }
   }
 
   Future<void> _toggleCalendar() async {
@@ -424,18 +425,20 @@ class _IntegrationsSectionState extends State<_IntegrationsSection> {
     try {
       if (_calendarConnected) {
         await GoogleCalendarService.signOut();
-        if (mounted)
+        if (mounted) {
           setState(() {
             _calendarConnected = false;
             _calendarLoading = false;
           });
+        }
       } else {
         final account = await GoogleCalendarService.signInForCalendar();
-        if (mounted)
+        if (mounted) {
           setState(() {
             _calendarConnected = account != null;
             _calendarLoading = false;
           });
+        }
         if (account != null && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

@@ -41,8 +41,10 @@ class GeminiService {
     String userId,
   ) async {
     final now = DateTime.now();
-    final String todayDate = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
-    final String currentTime = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
+    final String todayDate =
+        "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    final String currentTime =
+        "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
     final prompt =
         '''
 You are SetiaU, an agentic secretary for student organizations and NGOs.
@@ -193,15 +195,74 @@ Return ONLY the proposed solution as plain text (no JSON, no markdown).
     }
   }
 
+  /// Generate AI-powered org insights from real stats.
+  /// Returns a list of exactly 4 insight maps, each with:
+  /// title, subtitle, value, label, footer, colorHex, progress (0.0–1.0).
+  Future<List<Map<String, dynamic>>> generateOrgInsights(
+    Map<String, dynamic> stats,
+  ) async {
+    final prompt =
+        '''
+You are SetiaU, an AI secretary analysing a student organisation's performance.
+Given the following real statistics, generate exactly 4 insightful observations or
+predictions. For each insight, provide a short actionable title, a subtitle,
+a highlighted value (e.g. "89%", "RM 4,200", "12"), a short label for context,
+a one-sentence footer with a specific recommendation or trend, a hex colour
+(one of: #27AE60, #6A5AE0, #2D9CDB, #1A237E, #F2994A, #E02E4C), and a
+progress value between 0.0 and 1.0 representing how "good" the metric is.
+
+Organisation statistics:
+- Meetings this month: ${stats['meetingsThisMonth']}
+- Total meetings all-time: ${stats['totalMeetings']}
+- Completed tasks: ${stats['completedTasks']} / ${stats['totalTasks']}
+- Active members: ${stats['activeMembersCount']}
+- Executed actions (approved + done): ${stats['executedActions']}
+- Rejected actions: ${stats['rejectedActions']}
+- Pending actions awaiting approval: ${stats['pendingActions']}
+- Reference date: ${DateTime.now().toIso8601String().split('T')[0]}
+
+Return ONLY a JSON array of exactly 4 objects. No markdown, no explanation.
+Schema per object:
+{
+  "title": "string (max 4 words)",
+  "subtitle": "string (max 8 words)",
+  "value": "string (the featured metric, e.g. 89% or RM 4,200)",
+  "label": "string (short context label, e.g. This Month)",
+  "footer": "string (one actionable sentence)",
+  "colorHex": "#RRGGBB",
+  "progress": 0.0
+}
+''';
+
+    try {
+      final response = await _model
+          .generateContent([Content.text(prompt)])
+          .timeout(const Duration(seconds: 30));
+      final text = response.text ?? '[]';
+      final cleaned = _stripMarkdownCodeFences(text);
+      final decoded = jsonDecode(cleaned);
+      if (decoded is! List) return [];
+      return decoded
+          .whereType<Map>()
+          .map((e) => e.cast<String, dynamic>())
+          .take(4)
+          .toList();
+    } catch (e) {
+      debugPrint('Error generating insights: $e');
+      return [];
+    }
+  }
+
   /// Generate action payloads for Google Workspace APIs
   /// Returns structured data for calendar, email, sheets, docs operations
   Future<Map<String, dynamic>> generateActionPayload(
     Task task,
     String actionType,
   ) async {
-  final now = DateTime.now();
-  final String todayDate = now.toIso8601String().split('T')[0];
-  final String currentTime = "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
+    final now = DateTime.now();
+    final String todayDate = now.toIso8601String().split('T')[0];
+    final String currentTime =
+        "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
     final prompt =
         '''
 You are SetiaU generating structured API payloads for Google Workspace automation.
