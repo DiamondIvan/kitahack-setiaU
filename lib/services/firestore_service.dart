@@ -213,4 +213,25 @@ class FirestoreService {
       'members': FieldValue.arrayUnion([userId]),
     });
   }
+
+  // Real-time stream of a single organization document (for member count)
+  Stream<Organization?> getOrganizationStream(String organizationId) {
+    return _db
+        .collection('organizations')
+        .doc(organizationId)
+        .snapshots()
+        .map((doc) => doc.exists ? Organization.fromFirestore(doc) : null);
+  }
+
+  // All tasks for an organization (client-side status filtering for counts)
+  Stream<List<Task>> getTasksForOrganization(String organizationId) {
+    return _db
+        .collection('tasks')
+        .where('organizationId', isEqualTo: organizationId)
+        .snapshots()
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => Task.fromFirestore(doc)).toList(),
+        );
+  }
 }
