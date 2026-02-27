@@ -20,8 +20,10 @@
 ## 2. Project Overview
 
 **The Problem:** Student leaders waste 70% of their time on admin work (minutes, scheduling, follow-ups) and only 30% on strategic impact. This causes administrative paralysis and burnout.
+
 **The Solution:** SetiaU acts as an active agent during meetings. It interprets goals, validates constraints, and executes multi-step workflows directly into Google Workspace.
-**SDG Alignment:** Goal 16 (Peace, Justice, and Strong Institutions) by increasing accountability, transparency, and preserving decision history.
+
+**SDG Alignment:** **Goal 16 (Peace, Justice, and Strong Institutions)** by increasing accountability, transparency, and preserving decision history.
 
 ---
 
