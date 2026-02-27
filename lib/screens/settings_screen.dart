@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:kitahack_setiau/models/firestore_models.dart';
+import 'package:kitahack_setiau/services/firestore_service.dart';
 import 'package:kitahack_setiau/services/google_calendar_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -11,6 +15,37 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   String _selectedTab = 'Profile';
+
+  final _firestoreService = FirestoreService();
+  Organization? _org;
+  bool _orgLoading = true;
+  StreamSubscription<Organization?>? _orgSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _orgSub = _firestoreService
+        .getOrganizationStream('demo_org')
+        .listen(
+          (org) {
+            if (mounted) {
+              setState(() {
+                _org = org;
+                _orgLoading = false;
+              });
+            }
+          },
+          onError: (_) {
+            if (mounted) setState(() => _orgLoading = false);
+          },
+        );
+  }
+
+  @override
+  void dispose() {
+    _orgSub?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -114,13 +149,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildSelectedContent() {
     switch (_selectedTab) {
       case 'Profile':
-        return const _ProfileSection();
+        return _ProfileSection(org: _org, loading: _orgLoading);
       case 'Notifications':
-        return const _NotificationsSection();
+        return _NotificationsSection(org: _org, loading: _orgLoading);
       case 'Integrations':
         return const _IntegrationsSection();
       case 'Security':
-        return const _SecuritySection();
+        return _SecuritySection(org: _org, loading: _orgLoading);
       default:
         return const SizedBox.shrink();
     }
@@ -195,42 +230,114 @@ class _SettingsTab extends StatelessWidget {
 }
 
 class _ProfileSection extends StatefulWidget {
-  const _ProfileSection();
+  final Organization? org;
+  final bool loading;
+
+  const _ProfileSection({required this.org, required this.loading});
 
   @override
   State<_ProfileSection> createState() => _ProfileSectionState();
 }
 
 class _ProfileSectionState extends State<_ProfileSection> {
+  static const List<String> _orgTypes = [
+    'Student Organization',
+    'Non-Profit Organization',
+    'Government Agency',
+    'Private Company',
+    'Public Institution',
+    'Community Group',
+    'Research Institute',
+    'Other',
+  ];
+
+  final _firestoreService = FirestoreService();
   late TextEditingController _orgNameController;
-  late TextEditingController _orgTypeController;
-  late TextEditingController _membersController;
-  late TextEditingController _timezoneController;
+  String _selectedOrgType = 'Student Organization';
+
+  bool _aiAutoIntervention = true;
+  bool _aiSmartScheduling = true;
+  bool _aiBudgetAlerts = true;
+
+  bool _saving = false;
+  bool _initialized = false;
+
+  void _syncFromOrg(Organization? org) {
+    if (org == null || _initialized) return;
+    _orgNameController.text = org.name;
+    final savedType =
+        (org.settings['orgType'] as String?) ?? 'Student Organization';
+    _selectedOrgType = _orgTypes.contains(savedType)
+        ? savedType
+        : 'Student Organization';
+    _aiAutoIntervention =
+        (org.settings['ai_autoIntervention'] as bool?) ?? true;
+    _aiSmartScheduling = (org.settings['ai_smartScheduling'] as bool?) ?? true;
+    _aiBudgetAlerts = (org.settings['ai_budgetAlerts'] as bool?) ?? true;
+    _initialized = true;
+  }
 
   @override
   void initState() {
     super.initState();
-    _orgNameController = TextEditingController(
-      text: 'University Student Council',
-    );
-    _orgTypeController = TextEditingController(text: 'Student Organization');
-    _membersController = TextEditingController(text: '30');
-    _timezoneController = TextEditingController(
-      text: 'Asia/Kuala_Lumpur (GMT+8)',
-    );
+    _orgNameController = TextEditingController();
+    _syncFromOrg(widget.org);
+  }
+
+  @override
+  void didUpdateWidget(_ProfileSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_initialized) _syncFromOrg(widget.org);
   }
 
   @override
   void dispose() {
     _orgNameController.dispose();
-    _orgTypeController.dispose();
-    _membersController.dispose();
-    _timezoneController.dispose();
     super.dispose();
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    try {
+      await _firestoreService.updateOrganization('demo_org', {
+        'name': _orgNameController.text.trim(),
+        'settings.orgType': _selectedOrgType,
+        'settings.ai_autoIntervention': _aiAutoIntervention,
+        'settings.ai_smartScheduling': _aiSmartScheduling,
+        'settings.ai_budgetAlerts': _aiBudgetAlerts,
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile saved successfully.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.loading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(48),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -243,19 +350,79 @@ class _ProfileSectionState extends State<_ProfileSection> {
               controller: _orgNameController,
             ),
             const SizedBox(height: 16),
-            _EditableInfoField(
-              label: 'Organization Type',
-              controller: _orgTypeController,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Organization Type',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1A1D1E),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedOrgType,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey.withAlpha(51)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey.withAlpha(51)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF6A5AE0)),
+                    ),
+                  ),
+                  items: _orgTypes
+                      .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                      .toList(),
+                  onChanged: (v) {
+                    if (v != null) setState(() => _selectedOrgType = v);
+                  },
+                ),
+              ],
             ),
             const SizedBox(height: 16),
-            _EditableInfoField(
-              label: 'Number of Members',
-              controller: _membersController,
-            ),
-            const SizedBox(height: 16),
-            _EditableInfoField(
-              label: 'Timezone',
-              controller: _timezoneController,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Number of Members',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1A1D1E),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.withAlpha(51)),
+                  ),
+                  child: Text(
+                    '${widget.org?.members.length ?? 0} members (managed via Firebase)',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -267,17 +434,20 @@ class _ProfileSectionState extends State<_ProfileSection> {
             _SwitchRow(
               title: 'Auto-intervention',
               subtitle: 'AI suggests alternatives when constraints detected',
-              initialValue: true,
+              initialValue: _aiAutoIntervention,
+              onChanged: (v) => setState(() => _aiAutoIntervention = v),
             ),
             _SwitchRow(
               title: 'Smart scheduling',
               subtitle: 'Automatically check member availability',
-              initialValue: true,
+              initialValue: _aiSmartScheduling,
+              onChanged: (v) => setState(() => _aiSmartScheduling = v),
             ),
             _SwitchRow(
               title: 'Budget alerts',
               subtitle: 'Warn when approaching budget limits',
-              initialValue: true,
+              initialValue: _aiBudgetAlerts,
+              onChanged: (v) => setState(() => _aiBudgetAlerts = v),
             ),
           ],
         ),
@@ -285,8 +455,17 @@ class _ProfileSectionState extends State<_ProfileSection> {
         Align(
           alignment: Alignment.centerRight,
           child: ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.check, size: 20),
+            onPressed: _saving ? null : _save,
+            icon: _saving
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.check, size: 20),
             label: const Text(
               'Save Changes',
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -309,11 +488,99 @@ class _ProfileSectionState extends State<_ProfileSection> {
   }
 }
 
-class _NotificationsSection extends StatelessWidget {
-  const _NotificationsSection();
+class _NotificationsSection extends StatefulWidget {
+  final Organization? org;
+  final bool loading;
+
+  const _NotificationsSection({required this.org, required this.loading});
+
+  @override
+  State<_NotificationsSection> createState() => _NotificationsSectionState();
+}
+
+class _NotificationsSectionState extends State<_NotificationsSection> {
+  final _firestoreService = FirestoreService();
+
+  bool _pendingApprovals = true;
+  bool _meetingSummaries = true;
+  bool _taskAssignments = true;
+  bool _budgetUpdates = false;
+  bool _weeklyDigest = true;
+  bool _aiInterventions = true;
+  bool _soundEffects = false;
+
+  bool _saving = false;
+  bool _initialized = false;
+
+  void _syncFromOrg(Organization? org) {
+    if (org == null || _initialized) return;
+    final s = org.settings;
+    _pendingApprovals = (s['notif_pendingApprovals'] as bool?) ?? true;
+    _meetingSummaries = (s['notif_meetingSummaries'] as bool?) ?? true;
+    _taskAssignments = (s['notif_taskAssignments'] as bool?) ?? true;
+    _budgetUpdates = (s['notif_budgetUpdates'] as bool?) ?? false;
+    _weeklyDigest = (s['notif_weeklyDigest'] as bool?) ?? true;
+    _aiInterventions = (s['notif_aiInterventions'] as bool?) ?? true;
+    _soundEffects = (s['notif_soundEffects'] as bool?) ?? false;
+    _initialized = true;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _syncFromOrg(widget.org);
+  }
+
+  @override
+  void didUpdateWidget(_NotificationsSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_initialized) _syncFromOrg(widget.org);
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    try {
+      await _firestoreService.updateOrganization('demo_org', {
+        'settings.notif_pendingApprovals': _pendingApprovals,
+        'settings.notif_meetingSummaries': _meetingSummaries,
+        'settings.notif_taskAssignments': _taskAssignments,
+        'settings.notif_budgetUpdates': _budgetUpdates,
+        'settings.notif_weeklyDigest': _weeklyDigest,
+        'settings.notif_aiInterventions': _aiInterventions,
+        'settings.notif_soundEffects': _soundEffects,
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Notification preferences saved.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.loading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(48),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -324,27 +591,32 @@ class _NotificationsSection extends StatelessWidget {
             _SwitchRow(
               title: 'Pending approvals',
               subtitle: 'Get notified when actions need approval',
-              initialValue: true,
+              initialValue: _pendingApprovals,
+              onChanged: (v) => setState(() => _pendingApprovals = v),
             ),
             _SwitchRow(
               title: 'Meeting summaries',
               subtitle: 'Receive auto-generated meeting minutes',
-              initialValue: true,
+              initialValue: _meetingSummaries,
+              onChanged: (v) => setState(() => _meetingSummaries = v),
             ),
             _SwitchRow(
               title: 'Task assignments',
               subtitle: 'Alert when new tasks are assigned',
-              initialValue: true,
+              initialValue: _taskAssignments,
+              onChanged: (v) => setState(() => _taskAssignments = v),
             ),
             _SwitchRow(
               title: 'Budget updates',
               subtitle: 'Notify on budget changes',
-              initialValue: false, // Matches screenshot
+              initialValue: _budgetUpdates,
+              onChanged: (v) => setState(() => _budgetUpdates = v),
             ),
             _SwitchRow(
               title: 'Weekly digest',
               subtitle: 'Summary of weekly activities',
-              initialValue: true,
+              initialValue: _weeklyDigest,
+              onChanged: (v) => setState(() => _weeklyDigest = v),
             ),
           ],
         ),
@@ -356,12 +628,14 @@ class _NotificationsSection extends StatelessWidget {
             _SwitchRow(
               title: 'AI interventions',
               subtitle: 'Show alerts during meetings',
-              initialValue: true,
+              initialValue: _aiInterventions,
+              onChanged: (v) => setState(() => _aiInterventions = v),
             ),
             _SwitchRow(
               title: 'Sound effects',
               subtitle: 'Play sounds for important alerts',
-              initialValue: false, // Matches screenshot
+              initialValue: _soundEffects,
+              onChanged: (v) => setState(() => _soundEffects = v),
             ),
           ],
         ),
@@ -369,8 +643,17 @@ class _NotificationsSection extends StatelessWidget {
         Align(
           alignment: Alignment.centerRight,
           child: ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.check, size: 20),
+            onPressed: _saving ? null : _save,
+            icon: _saving
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.check, size: 20),
             label: const Text(
               'Save Changes',
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -600,38 +883,74 @@ class _IntegrationsSectionState extends State<_IntegrationsSection> {
                 ],
               ),
             ),
-            _SwitchRow(
-              title: 'Gmail',
-              subtitle: '',
-              icon: Icons.mail_outline,
-              initialValue: true,
-              compact: true,
-            ),
-            _SwitchRow(
+            _ComingSoonRow(title: 'Gmail', icon: Icons.mail_outline),
+            _ComingSoonRow(
               title: 'Google Docs',
-              subtitle: '',
               icon: Icons.description_outlined,
-              initialValue: true,
-              compact: true,
             ),
-            _SwitchRow(
+            _ComingSoonRow(
               title: 'Google Sheets',
-              subtitle: '',
               icon: Icons.table_chart_outlined,
-              initialValue: true,
-              compact: true,
             ),
           ],
         ),
         const SizedBox(height: 24),
         _SectionCard(
           title: 'AI Model Configuration',
-          subtitle: "Gemini 3.0 Pro API settings",
+          subtitle: 'Gemini API settings',
           children: [
-            // Placeholder for content not fully visible in screenshot
-            const Text(
-              'Gemini 3.0 Pro API settings',
-              style: TextStyle(color: Colors.grey),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.blue.withAlpha(51)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.auto_awesome, color: Colors.blue, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Gemini 2.0 Flash',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          'Active model · configured via GEMINI_API_KEY',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withAlpha(26),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      'Active',
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -640,11 +959,172 @@ class _IntegrationsSectionState extends State<_IntegrationsSection> {
   }
 }
 
-class _SecuritySection extends StatelessWidget {
-  const _SecuritySection();
+class _SecuritySection extends StatefulWidget {
+  final Organization? org;
+  final bool loading;
+
+  const _SecuritySection({required this.org, required this.loading});
+
+  @override
+  State<_SecuritySection> createState() => _SecuritySectionState();
+}
+
+class _SecuritySectionState extends State<_SecuritySection> {
+  final _firestoreService = FirestoreService();
+
+  bool _requireApproval = true;
+  bool _auditLogging = true;
+  bool _twoFactor = false;
+  int _retentionMonths = 12;
+
+  bool _saving = false;
+  bool _initialized = false;
+
+  void _syncFromOrg(Organization? org) {
+    if (org == null || _initialized) return;
+    final s = org.settings;
+    _requireApproval = (s['security_requireApproval'] as bool?) ?? true;
+    _auditLogging = (s['security_auditLogging'] as bool?) ?? true;
+    _twoFactor = (s['security_twoFactor'] as bool?) ?? false;
+    _retentionMonths = (s['data_retentionMonths'] as int?) ?? 12;
+    _initialized = true;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _syncFromOrg(widget.org);
+  }
+
+  @override
+  void didUpdateWidget(_SecuritySection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_initialized) _syncFromOrg(widget.org);
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    try {
+      await _firestoreService.updateOrganization('demo_org', {
+        'settings.security_requireApproval': _requireApproval,
+        'settings.security_auditLogging': _auditLogging,
+        'settings.security_twoFactor': _twoFactor,
+        'settings.data_retentionMonths': _retentionMonths,
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Security settings saved.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _configureRetention() async {
+    final options = [3, 6, 12, 24];
+    final picked = await showDialog<int>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Data Retention Period'),
+        children: options
+            .map(
+              (m) => SimpleDialogOption(
+                onPressed: () => Navigator.pop(ctx, m),
+                child: Row(
+                  children: [
+                    if (_retentionMonths == m)
+                      const Icon(
+                        Icons.check,
+                        size: 18,
+                        color: Color(0xFF6A5AE0),
+                      )
+                    else
+                      const SizedBox(width: 18),
+                    const SizedBox(width: 8),
+                    Text('$m months'),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
+    if (picked != null && mounted) {
+      setState(() => _retentionMonths = picked);
+    }
+  }
+
+  Future<void> _downloadData() async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Data export queued — you will receive an email when ready.',
+        ),
+        backgroundColor: Colors.blue,
+      ),
+    );
+  }
+
+  Future<void> _deleteData() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Organization Data'),
+        content: const Text(
+          'This will permanently delete all meetings, tasks, actions and budgets for this organization. '
+          'This action cannot be undone.\n\nAre you sure?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      // In a real implementation this would call a cloud function.
+      // For now, show feedback.
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Deletion request submitted.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.loading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(48),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -655,17 +1135,20 @@ class _SecuritySection extends StatelessWidget {
             _SwitchRow(
               title: 'Require approval for all actions',
               subtitle: 'Human-in-the-loop for every execution',
-              initialValue: true,
+              initialValue: _requireApproval,
+              onChanged: (v) => setState(() => _requireApproval = v),
             ),
             _SwitchRow(
               title: 'Audit logging',
               subtitle: 'Keep detailed logs of all activities',
-              initialValue: true,
+              initialValue: _auditLogging,
+              onChanged: (v) => setState(() => _auditLogging = v),
             ),
             _SwitchRow(
               title: 'Two-factor authentication',
               subtitle: 'Add extra security layer',
-              initialValue: false, // Matches screenshot
+              initialValue: _twoFactor,
+              onChanged: (v) => setState(() => _twoFactor = v),
             ),
           ],
         ),
@@ -689,13 +1172,13 @@ class _SecuritySection extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Currently: 12 months',
+                      'Currently: $_retentionMonths months',
                       style: TextStyle(color: Colors.grey[600], fontSize: 14),
                     ),
                   ],
                 ),
                 OutlinedButton(
-                  onPressed: () {},
+                  onPressed: _configureRetention,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFF1A1D1E),
                     side: BorderSide(color: Colors.grey.shade300),
@@ -717,12 +1200,12 @@ class _SecuritySection extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: _downloadData,
                 icon: const Icon(Icons.storage_outlined, size: 18),
                 label: const Text('Download All Data'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF1F5F9), // Light grey
-                  foregroundColor: const Color(0xFF1A1D1E), // Dark text
+                  backgroundColor: const Color(0xFFF1F5F9),
+                  foregroundColor: const Color(0xFF1A1D1E),
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
@@ -748,7 +1231,7 @@ class _SecuritySection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: TextButton(
-                onPressed: () {},
+                onPressed: _deleteData,
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -767,8 +1250,17 @@ class _SecuritySection extends StatelessWidget {
         Align(
           alignment: Alignment.centerRight,
           child: ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.save_outlined, size: 18),
+            onPressed: _saving ? null : _save,
+            icon: _saving
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.save_outlined, size: 18),
             label: const Text('Save Changes'),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6A5AE0),
@@ -895,16 +1387,14 @@ class _EditableInfoField extends StatelessWidget {
 class _SwitchRow extends StatefulWidget {
   final String title;
   final String subtitle;
-  final IconData? icon;
   final bool initialValue;
-  final bool compact;
+  final ValueChanged<bool>? onChanged;
 
   const _SwitchRow({
     required this.title,
     required this.subtitle,
     this.initialValue = true,
-    this.icon,
-    this.compact = false,
+    this.onChanged,
   });
 
   @override
@@ -921,18 +1411,20 @@ class _SwitchRowState extends State<_SwitchRow> {
   }
 
   @override
+  void didUpdateWidget(_SwitchRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialValue != widget.initialValue) {
+      _value = widget.initialValue;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: widget.compact ? 12.0 : 16.0),
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Row(
-        crossAxisAlignment: widget.compact
-            ? CrossAxisAlignment.center
-            : CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (widget.icon != null) ...[
-            Icon(widget.icon, size: 24, color: Colors.grey[600]),
-            const SizedBox(width: 16),
-          ],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -959,7 +1451,10 @@ class _SwitchRowState extends State<_SwitchRow> {
           const SizedBox(width: 16),
           Switch(
             value: _value,
-            onChanged: (val) => setState(() => _value = val),
+            onChanged: (val) {
+              setState(() => _value = val);
+              widget.onChanged?.call(val);
+            },
             activeThumbColor: const Color(0xFF6A5AE0),
             inactiveThumbColor: Colors.grey[400],
             inactiveTrackColor: Colors.grey[200],
@@ -971,6 +1466,52 @@ class _SwitchRowState extends State<_SwitchRow> {
               }
               return Colors.grey[300];
             }),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ComingSoonRow extends StatelessWidget {
+  final String title;
+  final IconData icon;
+
+  const _ComingSoonRow({required this.title, required this.icon});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 24, color: Colors.grey[400]),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[400],
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Text(
+              'Coming soon',
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey[500],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),

@@ -281,7 +281,9 @@ class Organization {
       description: data['description'] ?? '',
       members: List<String>.from(data['members'] ?? []),
       admin: data['admin'] ?? '',
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      createdAt: data['createdAt'] != null
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
       settings: data['settings'] ?? {},
     );
   }
