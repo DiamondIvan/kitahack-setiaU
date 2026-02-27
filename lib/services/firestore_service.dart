@@ -202,7 +202,37 @@ class FirestoreService {
     String organizationId,
     Map<String, dynamic> data,
   ) async {
-    await _db.collection('organizations').doc(organizationId).update(data);
+    final ref = _db.collection('organizations').doc(organizationId);
+    try {
+      await ref.update(data);
+    } on FirebaseException catch (e) {
+      if (e.code == 'not-found') {
+        // Document doesn't exist yet — create it from scratch.
+        await ref.set(_expandDotNotation(data));
+      } else {
+        rethrow;
+      }
+    }
+  }
+
+  /// Converts flat dot-notation keys to a nested map.
+  /// e.g. {'settings.orgType': 'foo'} → {'settings': {'orgType': 'foo'}}
+  Map<String, dynamic> _expandDotNotation(Map<String, dynamic> flat) {
+    final result = <String, dynamic>{};
+    for (final entry in flat.entries) {
+      final parts = entry.key.split('.');
+      if (parts.length == 1) {
+        result[entry.key] = entry.value;
+      } else {
+        var node = result;
+        for (var i = 0; i < parts.length - 1; i++) {
+          node =
+              (node[parts[i]] ??= <String, dynamic>{}) as Map<String, dynamic>;
+        }
+        node[parts.last] = entry.value;
+      }
+    }
+    return result;
   }
 
   Future<void> addMemberToOrganization(
