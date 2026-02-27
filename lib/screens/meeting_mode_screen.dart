@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kitahack_setiau/models/firestore_models.dart';
 import 'package:kitahack_setiau/services/firestore_service.dart';
 import 'package:kitahack_setiau/services/gemini_service.dart';
+import 'package:kitahack_setiau/services/google_export_service.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 class MeetingModeScreen extends StatefulWidget {
@@ -35,6 +37,14 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
 
   String? _activeMeetingId;
   DateTime? _meetingStartTime;
+  DateTime? _meetingEndTime;
+  String _currentMeetingTitle = '';
+
+  // Export state
+  bool _exportingDoc = false;
+  bool _exportingSheet = false;
+  String? _docUrl;
+  String? _sheetUrl;
 
   @override
   void dispose() {
@@ -88,10 +98,13 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
     setState(() {
       _activeMeetingId = meetingId;
       _meetingStartTime = start;
+      _meetingEndTime = null;
       _transcriptBuffer = '';
       _currentSegment = '';
       _extractedTasks.clear();
       _isRecording = true;
+      _docUrl = null;
+      _sheetUrl = null;
     });
 
     await _startListening();
@@ -224,12 +237,20 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
 
     final now = DateTime.now();
     final start = _meetingStartTime ?? now;
+    final meetingTitle =
+        'Meeting ${start.toIso8601String().replaceFirst('T', ' ').substring(0, 16)}';
+
+    if (mounted) {
+      setState(() {
+        _currentMeetingTitle = meetingTitle;
+        _meetingEndTime = now;
+      });
+    }
 
     final meeting = Meeting(
       id: meetingId,
       organizationId: 'demo_org',
-      title:
-          'Meeting ${start.toIso8601String().replaceFirst('T', ' ').substring(0, 16)}',
+      title: meetingTitle,
       startTime: start,
       endTime: now,
       attendees: [userId],
@@ -270,6 +291,111 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Export helpers
+  // ---------------------------------------------------------------------------
+
+  Future<void> _exportToDoc() async {
+    setState(() => _exportingDoc = true);
+    try {
+      final url = await GoogleExportService.exportTranscriptToDoc(
+        meetingTitle: _currentMeetingTitle,
+        transcript: _transcript,
+        tasks: _extractedTasks,
+        startTime: _meetingStartTime ?? DateTime.now(),
+        endTime: _meetingEndTime ?? DateTime.now(),
+      );
+      if (!mounted) return;
+      if (url != null) {
+        setState(() => _docUrl = url);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Transcript exported to Google Docs!'),
+            backgroundColor: Colors.green,
+            action: SnackBarAction(
+              label: 'Open',
+              textColor: Colors.white,
+              onPressed: () => launchUrl(Uri.parse(url)),
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Export failed. Make sure you are signed in with Google.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _exportingDoc = false);
+    }
+  }
+
+  Future<void> _exportToSheet() async {
+    if (_extractedTasks.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No tasks to export. Run the meeting first.'),
+        ),
+      );
+      return;
+    }
+    setState(() => _exportingSheet = true);
+    try {
+      final url = await GoogleExportService.exportTasksToSheet(
+        meetingTitle: _currentMeetingTitle,
+        tasks: _extractedTasks,
+      );
+      if (!mounted) return;
+      if (url != null) {
+        setState(() => _sheetUrl = url);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Tasks exported to Google Sheets!'),
+            backgroundColor: Colors.green,
+            action: SnackBarAction(
+              label: 'Open',
+              textColor: Colors.white,
+              onPressed: () => launchUrl(Uri.parse(url)),
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Export failed. Make sure you are signed in with Google.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _exportingSheet = false);
+    }
+  }
+
   /// Build Action documents from extracted tasks using category-to-type mapping.
   /// These will appear in the dashboard as pending approvals.
   List<Action> _buildActionsFromTasks(
@@ -298,9 +424,13 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
     }
 
     Map<String, dynamic> defaultPayload(Task t, String actionType) {
-      final String extractedTime = "${t.dueDate.hour.toString().padLeft(2, '0')}:${t.dueDate.minute.toString().padLeft(2, '0')}";
+      final String extractedTime =
+          "${t.dueDate.hour.toString().padLeft(2, '0')}:${t.dueDate.minute.toString().padLeft(2, '0')}";
       final dateStr = t.dueDate.toIso8601String().split('T')[0];
-      final String finalStartTime = (t.dueDate.hour == 0 && t.dueDate.minute == 0) ? '09:00' : extractedTime;
+      final String finalStartTime =
+          (t.dueDate.hour == 0 && t.dueDate.minute == 0)
+          ? '09:00'
+          : extractedTime;
       switch (actionType) {
         case 'calendar':
           return {
@@ -337,7 +467,6 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
           return {};
       }
     }
-    
 
     return tasks.map((task) {
       final actionType = actionTypeFor(task);
@@ -360,7 +489,7 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isMobile = constraints.maxWidth < 900;
-        
+
         return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
             isMobile ? 16.0 : 32.0,
@@ -567,6 +696,54 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
               ),
             ),
           ),
+          if (_transcript.isNotEmpty && !_isRecording && !_isProcessing) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _exportingDoc ? null : _exportToDoc,
+                    icon: _exportingDoc
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.description_outlined, size: 16),
+                    label: Text(
+                      _docUrl != null
+                          ? 'Re-export to Docs'
+                          : 'Export to Google Docs',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF4285F4),
+                      side: const BorderSide(color: Color(0xFF4285F4)),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                if (_docUrl != null) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    tooltip: 'Open in Google Docs',
+                    onPressed: () => launchUrl(Uri.parse(_docUrl!)),
+                    icon: const Icon(
+                      Icons.open_in_new,
+                      size: 20,
+                      color: Color(0xFF4285F4),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -680,6 +857,56 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
                     },
                   ),
           ),
+          if (_extractedTasks.isNotEmpty &&
+              !_isRecording &&
+              !_isProcessing) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _exportingSheet ? null : _exportToSheet,
+                    icon: _exportingSheet
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.table_chart_outlined, size: 16),
+                    label: Text(
+                      _sheetUrl != null
+                          ? 'Re-export to Sheets'
+                          : 'Export to Google Sheets',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF0F9D58),
+                      side: const BorderSide(color: Color(0xFF0F9D58)),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                if (_sheetUrl != null) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    tooltip: 'Open in Google Sheets',
+                    onPressed: () => launchUrl(Uri.parse(_sheetUrl!)),
+                    icon: const Icon(
+                      Icons.open_in_new,
+                      size: 20,
+                      color: Color(0xFF0F9D58),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -738,6 +965,7 @@ class _MeetingModeScreenState extends State<MeetingModeScreen> {
       ],
     );
   }
+
   String _calculateEndTime(String startTime) {
     try {
       final parts = startTime.split(':');

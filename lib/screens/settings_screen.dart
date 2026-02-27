@@ -884,13 +884,15 @@ class _IntegrationsSectionState extends State<_IntegrationsSection> {
               ),
             ),
             _ComingSoonRow(title: 'Gmail', icon: Icons.mail_outline),
-            _ComingSoonRow(
+            _ActiveIntegrationRow(
               title: 'Google Docs',
               icon: Icons.description_outlined,
+              description: 'Export meeting transcripts via Meeting Mode',
             ),
-            _ComingSoonRow(
+            _ActiveIntegrationRow(
               title: 'Google Sheets',
               icon: Icons.table_chart_outlined,
+              description: 'Export extracted tasks via Meeting Mode',
             ),
           ],
         ),
@@ -1510,6 +1512,67 @@ class _ComingSoonRow extends StatelessWidget {
                 fontSize: 11,
                 color: Colors.grey[500],
                 fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActiveIntegrationRow extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final String description;
+
+  const _ActiveIntegrationRow({
+    required this.title,
+    required this.icon,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 24, color: const Color(0xFF6A5AE0)),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF1A1D1E),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.green.withAlpha(26),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.green.withAlpha(77)),
+            ),
+            child: const Text(
+              'Available',
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.green,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
