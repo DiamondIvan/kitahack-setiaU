@@ -16,9 +16,7 @@ This file provides example configurations for local development and production.
     "indexes": "firestore.indexes.json"
   },
   "functions": {
-    "predeploy": [
-      "npm --prefix \"$RESOURCE_DIR\" run lint"
-    ],
+    "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run lint"],
     "source": "functions",
     "codebase": "default"
   },
@@ -61,73 +59,73 @@ This file provides example configurations for local development and production.
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
+
     // Helper: Check if user is authenticated
     function isAuth() {
       return request.auth != null;
     }
-    
+
     // Helper: Check if user is organization admin
     function isOrgAdmin(orgId) {
-      return isAuth() && 
+      return isAuth() &&
              get(/databases/$(database)/documents/organizations/$(orgId)).data.admin == request.auth.uid;
     }
-    
+
     // Helper: Check if user is org member
     function isOrgMember(orgId) {
       return isAuth() &&
              request.auth.uid in get(/databases/$(database)/documents/organizations/$(orgId)).data.members;
     }
-    
+
     // Organizations: Admin can create/update, members can read
     match /organizations/{orgId} {
       allow read: if isAuth() && isOrgMember(orgId);
       allow create: if isAuth();
       allow update, delete: if isAuth() && isOrgAdmin(orgId);
     }
-    
+
     // Meetings: Members can create/read, admin can update
     match /meetings/{meetingId} {
-      allow create, read: if isAuth() && 
+      allow create, read: if isAuth() &&
                             isOrgMember(get(resource.data).organizationId);
-      allow update: if isAuth() && 
+      allow update: if isAuth() &&
                        isOrgAdmin(get(resource.data).organizationId);
-      allow delete: if isAuth() && 
+      allow delete: if isAuth() &&
                        isOrgAdmin(get(resource.data).organizationId);
     }
-    
+
     // Tasks: Members can create/read, assigned users can update
     match /tasks/{taskId} {
-      allow create, read: if isAuth() && 
+      allow create, read: if isAuth() &&
                             isOrgMember(
                               get(/databases/$(database)/documents/meetings/
                                 $(get(resource.data).meetingId)).data.organizationId
                             );
-      allow update: if isAuth() && 
+      allow update: if isAuth() &&
                        (request.auth.uid == resource.data.assignedTo ||
                         isOrgAdmin(
                           get(/databases/$(database)/documents/meetings/
                             $(get(resource.data).meetingId)).data.organizationId
                         ));
     }
-    
+
     // Actions: Authenticated users can read, approval required to update
     match /actions/{actionId} {
       allow read: if isAuth();
       allow create: if isAuth();
-      allow update: if isAuth() && 
+      allow update: if isAuth() &&
                        (request.auth.uid == get(resource.data).approvedBy ||
                         request.auth.uid == 'cloud-function-service');
     }
-    
+
     // Budgets: Members can read, admin can update
     match /budgets/{budgetId} {
-      allow read: if isAuth() && 
+      allow read: if isAuth() &&
                      isOrgMember(resource.data.organizationId);
-      allow update: if isAuth() && 
+      allow update: if isAuth() &&
                        isOrgAdmin(resource.data.organizationId);
     }
-    
+
     // Action Logs: Immutable, append-only
     match /action_logs/{logId} {
       allow read: if isAuth();
@@ -174,21 +172,21 @@ class FirebaseConfig {
   // Development
   static const String devProjectId = 'kitahack-setiau-dev';
   static const String devDatabaseURL = 'https://kitahack-setiau-dev.firebaseio.com';
-  
+
   // Production
   static const String prodProjectId = 'kitahack-setiau-2026';
   static const String prodDatabaseURL = 'https://kitahack-setiau-2026.firebaseio.com';
-  
+
   // Current environment
   static const String environment = String.fromEnvironment(
     'ENVIRONMENT',
     defaultValue: 'development',
   );
-  
+
   static String get projectId {
     return environment == 'production' ? prodProjectId : devProjectId;
   }
-  
+
   static String get databaseUrl {
     return environment == 'production' ? prodDatabaseURL : devDatabaseURL;
   }
@@ -276,6 +274,7 @@ class FirebaseConfig {
 ```
 
 Deploy with:
+
 ```bash
 firebase functions:config:set gemini.api_key="YOUR_KEY"
 firebase functions:config:set google.project_id="YOUR_PROJECT_ID"
@@ -304,11 +303,12 @@ ENABLE_CONSOLE_LOGS=true
 ```
 
 Load in Flutter:
+
 ```dart
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
-  await dotenv.load(fileName: '.env.local');
+  await dotenv.load(fileName: '.env');
   // ...
 }
 ```
@@ -330,18 +330,21 @@ android {
 
         // Google Sign-In
         resValue "string", "google_app_id", "YOUR_GOOGLE_APP_ID"
-        
+
         // Firebase
         manifestPlaceholders = [
             googlePlayServicesVersion: "21.0.1"
         ]
     }
 
-    dependencies {
-        implementation 'com.google.gms:google-services:4.4.0'
-    }
 }
 ```
+
+Note: In this repo the Google Services Gradle plugin is applied via:
+
+- `plugins { id("com.google.gms.google-services") }` in `android/app/build.gradle.kts`
+
+You do **not** add `com.google.gms:google-services` as an `implementation` dependency.
 
 ---
 
@@ -355,15 +358,15 @@ android {
     <!-- Google Sign-In -->
     <key>GIDClientID</key>
     <string>YOUR_IOS_CLIENT_ID.apps.googleusercontent.com</string>
-    
+
     <!-- Firebase -->
     <key>FirebaseAppID</key>
     <string>YOUR_FIREBASE_APP_ID</string>
-    
+
     <!-- Microphone Permission -->
     <key>NSMicrophoneUsageDescription</key>
     <string>SetiaU needs microphone access to record meetings</string>
-    
+
     <!-- Camera Permission (for future features) -->
     <key>NSCameraUsageDescription</key>
     <string>SetiaU needs camera access for video meetings</string>
@@ -419,4 +422,4 @@ void setupTestData(FirebaseFirestore firestore) {
 ---
 
 **Configuration Examples v1.0**  
-*KitaHack 2026 - SetiaU Setup*
+_KitaHack 2026 - SetiaU Setup_

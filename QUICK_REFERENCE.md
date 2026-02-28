@@ -18,6 +18,9 @@ flutterfire configure
 # Run app
 flutter run
 
+# Required local config
+# Create `.env` with GEMINI_API_KEY=... (see .env.example)
+
 # Hot reload during development
 r (in terminal while running)
 
@@ -32,21 +35,22 @@ firebase functions:log --limit 50
 
 ## 📁 File Structure Quick Reference
 
-| File | Purpose |
-|------|---------|
-| `lib/main.dart` | App entry point, routes |
-| `lib/screens/` | UI screens (login, home, meeting, dashboard) |
-| `lib/services/` | Business logic (auth, firestore, gemini) |
-| `lib/models/` | Data models (Meeting, Task, Action, Budget) |
-| `lib/utils/` | Utilities, helpers, mock data |
-| `functions/index.js` | Cloud Functions backend |
-| `firebase.json` | Firebase configuration |
+| File                 | Purpose                                      |
+| -------------------- | -------------------------------------------- |
+| `lib/main.dart`      | App entry point, routes                      |
+| `lib/screens/`       | UI screens (login, home, meeting, dashboard) |
+| `lib/services/`      | Business logic (auth, firestore, gemini)     |
+| `lib/models/`        | Data models (Meeting, Task, Action, Budget)  |
+| `lib/utils/`         | Utilities, helpers, mock data                |
+| `functions/index.js` | Cloud Functions backend                      |
+| `firebase.json`      | Firebase configuration                       |
 
 ---
 
 ## 🔑 Core Services
 
 ### AuthService
+
 ```dart
 import 'package:kitahack_setiau/services/auth_service.dart';
 
@@ -67,6 +71,7 @@ auth.authStateChanges.listen((user) {...});
 ```
 
 ### FirestoreService
+
 ```dart
 import 'package:kitahack_setiau/services/firestore_service.dart';
 
@@ -89,6 +94,7 @@ await db.approveAction(actionId, userId);
 ```
 
 ### GeminiService
+
 ```dart
 import 'package:kitahack_setiau/services/gemini_service.dart';
 
@@ -116,6 +122,7 @@ final payload = await gemini.generateActionPayload(task, 'calendar');
 ## 🏗️ Data Models
 
 ### Meeting
+
 ```dart
 Meeting(
   id: 'unique_id',
@@ -131,6 +138,7 @@ Meeting(
 ```
 
 ### Task
+
 ```dart
 Task(
   id: 'unique_id',
@@ -148,6 +156,7 @@ Task(
 ```
 
 ### Action
+
 ```dart
 Action(
   id: 'unique_id',
@@ -166,6 +175,7 @@ Action(
 ```
 
 ### Budget
+
 ```dart
 Budget(
   id: 'unique_id',
@@ -185,6 +195,7 @@ Budget(
 ## 🎨 Common UI Patterns
 
 ### Navigation
+
 ```dart
 // Push new screen
 Navigator.pushNamed(context, '/home');
@@ -197,6 +208,7 @@ Navigator.pop(context);
 ```
 
 ### Show SnackBar
+
 ```dart
 ScaffoldMessenger.of(context).showSnackBar(
   SnackBar(
@@ -208,6 +220,7 @@ ScaffoldMessenger.of(context).showSnackBar(
 ```
 
 ### Permission Handling
+
 ```dart
 // Request permission (example for microphone)
 import 'package:permission_handler/permission_handler.dart';
@@ -219,6 +232,7 @@ if (status.isGranted) {
 ```
 
 ### Async Operations with Loading State
+
 ```dart
 setState(() => isLoading = true);
 try {
@@ -236,6 +250,7 @@ try {
 ## 📊 Firestore Query Patterns
 
 ### Get single document
+
 ```dart
 final doc = await FirebaseFirestore.instance
     .collection('tasks')
@@ -244,6 +259,7 @@ final doc = await FirebaseFirestore.instance
 ```
 
 ### Get filtered documents
+
 ```dart
 final snapshot = await FirebaseFirestore.instance
     .collection('tasks')
@@ -255,6 +271,7 @@ final snapshot = await FirebaseFirestore.instance
 ```
 
 ### Listen for real-time updates
+
 ```dart
 FirebaseFirestore.instance
     .collection('actions')
@@ -268,6 +285,7 @@ FirebaseFirestore.instance
 ```
 
 ### Batch write operations
+
 ```dart
 final batch = FirebaseFirestore.instance.batch();
 
@@ -283,6 +301,7 @@ await batch.commit();
 ## ☁️ Cloud Functions Patterns
 
 ### Call function from Flutter
+
 ```dart
 final functions = FirebaseFunctions.instance;
 
@@ -300,24 +319,25 @@ print(result.data);
 ```
 
 ### Cloud Function template
+
 ```javascript
 exports.myFunction = functions.https.onCall(async (data, context) => {
   // Verify auth
   if (!context.auth) {
     throw new functions.https.HttpsError(
-      'unauthenticated',
-      'User must be authenticated'
+      "unauthenticated",
+      "User must be authenticated",
     );
   }
 
   try {
     // Process data
     const result = await processData(data);
-    
+
     // Return result
     return { success: true, data: result };
   } catch (error) {
-    throw new functions.https.HttpsError('internal', error.message);
+    throw new functions.https.HttpsError("internal", error.message);
   }
 });
 ```
@@ -327,6 +347,7 @@ exports.myFunction = functions.https.onCall(async (data, context) => {
 ## 🧪 Testing Quick Ref
 
 ### Run tests
+
 ```bash
 # All tests
 flutter test
@@ -342,6 +363,7 @@ flutter test --coverage
 ```
 
 ### Mock data for testing
+
 ```dart
 import 'package:kitahack_setiau/utils/mock_data_generator.dart';
 
@@ -351,6 +373,7 @@ final scenario = MockDataGenerator.generateCompleteScenario();
 ```
 
 ### Firestore emulator
+
 ```bash
 # Start emulator
 firebase emulators:start
@@ -364,6 +387,7 @@ firebase emulators:start --import=./data --export-on-exit
 ## 🔐 Authentication
 
 ### Check if user is logged in
+
 ```dart
 final user = FirebaseAuth.instance.currentUser;
 if (user != null) {
@@ -375,11 +399,13 @@ if (user != null) {
 ```
 
 ### Get auth token (for Cloud Functions)
+
 ```dart
 final idToken = await FirebaseAuth.instance.currentUser?.getIdToken();
 ```
 
 ### Sign out
+
 ```dart
 await FirebaseAuth.instance.signOut();
 await GoogleSignIn().signOut();
@@ -390,6 +416,7 @@ await GoogleSignIn().signOut();
 ## 🎯 State Management
 
 ### Using Provider (recommended for SetiaU)
+
 ```dart
 // Define provider
 final userProvider = StateNotifierProvider<User>((ref) {
@@ -404,6 +431,7 @@ ref.read(userProvider.notifier).state = newUser;
 ```
 
 ### Using Stream
+
 ```dart
 StreamBuilder<List<Task>>(
   stream: FirestoreService().getTasksForMeeting(meetingId),
@@ -411,11 +439,11 @@ StreamBuilder<List<Task>>(
     if (snapshot.connectionState == ConnectionState.waiting) {
       return CircularProgressIndicator();
     }
-    
+
     if (snapshot.hasError) {
       return Text('Error: ${snapshot.error}');
     }
-    
+
     final tasks = snapshot.data ?? [];
     return ListView(children: tasks.map((task) => TaskTile(task)).toList());
   },
@@ -427,28 +455,33 @@ StreamBuilder<List<Task>>(
 ## 🐛 Debugging
 
 ### Print to console
+
 ```dart
 print('Debug message');
 debugPrint('Debug message');
 ```
 
 ### Inspect Firebase data
+
 ```dart
 // In Firebase Console or CLI
 firebase firestore:inspect
 ```
 
 ### Check app logs in Android Studio
+
 ```
 View → Tool Windows → Logcat
 ```
 
 ### Enable Flutter verbose logging
+
 ```bash
 flutter run -v
 ```
 
 ### Breakpoints in VS Code
+
 - Click line number to set breakpoint
 - Run → Start Debugging (F5)
 - Step over (F10), Step into (F11)
@@ -457,18 +490,18 @@ flutter run -v
 
 ## 📦 Useful Packages
 
-| Package | Purpose |
-|---------|---------|
-| `firebase_core` | Initialize Firebase |
-| `firebase_auth` | Authentication |
-| `cloud_firestore` | Database |
-| `google_sign_in` | Google auth |
-| `google_generative_ai` | Gemini API |
-| `record` | Audio recording |
-| `speech_to_text` | Speech recognition |
-| `provider` | State management |
-| `uuid` | Generate unique IDs |
-| `intl` | Internationalization |
+| Package                | Purpose              |
+| ---------------------- | -------------------- |
+| `firebase_core`        | Initialize Firebase  |
+| `firebase_auth`        | Authentication       |
+| `cloud_firestore`      | Database             |
+| `google_sign_in`       | Google auth          |
+| `google_generative_ai` | Gemini API           |
+| `record`               | Audio recording      |
+| `speech_to_text`       | Speech recognition   |
+| `provider`             | State management     |
+| `uuid`                 | Generate unique IDs  |
+| `intl`                 | Internationalization |
 
 ---
 
@@ -513,4 +546,4 @@ A: Yes, use `Navigator` with named routes and `pumpAndSettle()`
 ---
 
 **SetiaU Developer Quick Reference v1.0**
-*KitaHack 2026 - The Agentic Secretary*
+_KitaHack 2026 - The Agentic Secretary_
