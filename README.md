@@ -21,7 +21,6 @@
 
 **The Problem:** Student leaders waste 70% of their time on admin work (minutes, scheduling, follow-ups) and only 30% on strategic impact. This causes administrative paralysis and burnout.
 **The Solution:** SetiaU acts as an active agent during meetings. It interprets goals, validates constraints, and executes multi-step workflows directly into Google Workspace.
----
 **SDG Alignment:** Goal 16 (Peace, Justice, and Strong Institutions) by increasing accountability, transparency, and preserving decision history.
 
 ---
@@ -97,4 +96,5 @@ flutter run
 * **Full Auto-Generation:** Instantly generating comprehensive PDF minutes and AGM proposals.
 * **Complex Budget Sync:** Two-way sync with advanced Google Sheets accounting templates.
 * **AI Role Recommendations:** Suggesting the best team member for a task based on past success rates.
+
 
