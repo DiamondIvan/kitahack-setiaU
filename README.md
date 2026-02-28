@@ -67,23 +67,45 @@
 
 ## 7. Installation & Setup
 
-**Prerequisites:** Flutter SDK, Node.js, and a Google Cloud Console project.
+**Prerequisites:** Flutter SDK, Node.js, Firebase CLI, and a Google Cloud/Firebase project.
 
 **1. Clone the repository**
 ```bash
-git clone [https://github.com/your-username/SetiaU.git](https://github.com/your-username/SetiaU.git)
-cd SetiaU
+git clone <repo-url>
+cd kitahack_setiau
 ```
 
-**2. Setup Firebase Backend**
+**2. Configure local Gemini key (required for the app UI)**
+
+This app loads `GEMINI_API_KEY` from a local `.env` file (see `lib/main.dart`).
+
+- Create `.env` at the project root (it is already git-ignored)
+- Add:
+	- `GEMINI_API_KEY=YOUR_GEMINI_API_KEY`
+
+Tip: there is an `.env.example` you can copy from.
+
+**3. Setup Firebase Cloud Functions (optional; for Calendar/Email/Docs/Sheets execution)**
+
+Cloud Functions in this repo use a Firebase Secret named `GOOGLE_SERVICE_ACCOUNT_KEY` (the *entire service account JSON* as a string).
+
 ```bash
 cd functions
 npm install
+cd ..
+
+# set the Firebase project (this repo does not commit .firebaserc)
+firebase use --add
+
+# set secret (paste the full service account JSON when prompted)
+firebase functions:secrets:set GOOGLE_SERVICE_ACCOUNT_KEY
+
+# deploy
 firebase deploy --only functions
 ```
 
-**3. Run the App**
-Add your API keys to `.env`, then run:
+**4. Run the App**
+After creating `.env`, run:
 ```bash
 flutter pub get
 flutter run
